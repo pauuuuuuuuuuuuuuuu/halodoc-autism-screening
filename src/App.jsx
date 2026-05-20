@@ -1,538 +1,412 @@
 import { useState, useEffect, useRef } from "react";
 
-const LANG = {
-  id: {
-    nav_home: "Beranda", nav_screening: "Skrining AI", nav_history: "Riwayat",
-    nav_about: "Tentang Fitur", nav_admin: "Admin", nav_consult: "Konsultasi",
-    tagline: "Deteksi Dini Autisme untuk Masa Depan Cerah Anak Anda",
-    hero_sub: "Fitur skrining berbasis kecerdasan buatan Halodoc untuk membantu orang tua mendeteksi tanda-tanda awal autisme pada anak.",
-    start_btn: "Mulai Skrining Sekarang", learn_btn: "Pelajari Lebih Lanjut",
-    awareness_title: "Mengapa Deteksi Dini Penting?",
-    awareness_sub: "Deteksi dini memungkinkan intervensi lebih efektif dan hasil yang lebih baik untuk anak Anda.",
-    step_child_info: "Info Anak", step_behavior: "Perilaku", step_social: "Sosial & Komunikasi", step_result: "Hasil",
-    child_name: "Nama Anak", child_age: "Usia Anak (bulan)", child_gender: "Jenis Kelamin",
-    male: "Laki-laki", female: "Perempuan", next: "Lanjut", back: "Kembali",
-    analyzing: "AI sedang menganalisis...", result_title: "Hasil Skrining AI",
-    disclaimer: "⚕️ Fitur AI ini hanya untuk bantuan skrining awal dan tidak menggantikan diagnosis medis profesional.",
-    consult_pedia: "Konsultasi Dokter Anak", consult_psych: "Konsultasi Psikolog Anak",
-    book_now: "Booking Sekarang", chat_doc: "Chat dengan Dokter",
-    low_risk: "Risiko Rendah", mod_risk: "Risiko Sedang", high_risk: "Risiko Tinggi",
-    download_pdf: "Unduh Laporan PDF", screening_history: "Riwayat Skrining",
-    recommendations: "Rekomendasi", intervention: "Saran Intervensi Dini",
-    ai_tech: "Teknologi AI Kami", ml_title: "Machine Learning Classification",
-    admin_title: "Admin Analytics Dashboard", total_screenings: "Total Skrining",
-    pred_dist: "Distribusi Prediksi", accuracy: "Akurasi Model",
-    dark_mode: "Mode Gelap", language: "Bahasa",
-    confidence: "Tingkat Kepercayaan", behavior_analysis: "Analisis Perilaku",
-    submit_screening: "Analisis dengan AI"
-  },
-  en: {
-    nav_home: "Home", nav_screening: "AI Screening", nav_history: "History",
-    nav_about: "About Feature", nav_admin: "Admin", nav_consult: "Consultation",
-    tagline: "Early Autism Detection for Your Child's Bright Future",
-    hero_sub: "Halodoc's AI-powered screening feature to help parents detect early signs of autism in children.",
-    start_btn: "Start Screening Now", learn_btn: "Learn More",
-    awareness_title: "Why Early Detection Matters?",
-    awareness_sub: "Early detection enables more effective interventions and better outcomes for your child.",
-    step_child_info: "Child Info", step_behavior: "Behavior", step_social: "Social & Communication", step_result: "Results",
-    child_name: "Child's Name", child_age: "Child's Age (months)", child_gender: "Gender",
-    male: "Male", female: "Female", next: "Next", back: "Back",
-    analyzing: "AI is analyzing...", result_title: "AI Screening Results",
-    disclaimer: "⚕️ This AI feature is intended only for early screening assistance and does not replace professional medical diagnosis.",
-    consult_pedia: "Consult Pediatrician", consult_psych: "Consult Child Psychologist",
-    book_now: "Book Now", chat_doc: "Chat with Doctor",
-    low_risk: "Low Risk", mod_risk: "Moderate Risk", high_risk: "High Risk",
-    download_pdf: "Download PDF Report", screening_history: "Screening History",
-    recommendations: "Recommendations", intervention: "Early Intervention Suggestions",
-    ai_tech: "Our AI Technology", ml_title: "Machine Learning Classification",
-    admin_title: "Admin Analytics Dashboard", total_screenings: "Total Screenings",
-    pred_dist: "Prediction Distribution", accuracy: "Model Accuracy",
-    dark_mode: "Dark Mode", language: "Language",
-    confidence: "Confidence Level", behavior_analysis: "Behavioral Analysis",
-    submit_screening: "Analyze with AI"
+const C = {
+  pink: "#E5006C", pinkDark: "#C4005C", pinkLight: "#FFF0F7", pinkMid: "#FFD6EC",
+  purple: "#6B21A8", purpleLight: "#F3E8FF",
+  gray50: "#F9FAFB", gray100: "#F3F4F6", gray200: "#E5E7EB", gray400: "#9CA3AF",
+  gray600: "#4B5563", gray700: "#374151", gray800: "#1F2937",
+  white: "#FFFFFF", green: "#16A34A", greenLight: "#DCFCE7",
+  amber: "#D97706", amberLight: "#FEF3C7", red: "#DC2626", redLight: "#FEE2E2",
+};
+
+const DOCTORS = [
+  { id: 1, name: "dr. Anisa Rahma, Sp.A", spec: "Dokter Anak – Autism Specialist", hosp: "RS Siloam Semarang", dist: "1,2 km", rating: 4.9, rev: 312, price: "Rp 150.000", slot: "Hari ini 14:00", av: "AR", ok: true },
+  { id: 2, name: "dr. Budi Santoso, Sp.KJ", spec: "Psikiater Anak", hosp: "RSUP Dr. Kariadi", dist: "2,4 km", rating: 4.8, rev: 198, price: "Rp 200.000", slot: "Besok 09:00", av: "BS", ok: true },
+  { id: 3, name: "dr. Citra Dewi, Sp.A(K)", spec: "Neurologi Anak", hosp: "RS Elizabeth Semarang", dist: "3,1 km", rating: 4.9, rev: 421, price: "Rp 175.000", slot: "Hari ini 16:00", av: "CD", ok: true },
+  { id: 4, name: "dr. Dian Pratiwi, M.Psi", spec: "Psikolog Klinis Anak", hosp: "Klinik Tumbuh Kembang", dist: "0,8 km", rating: 4.7, rev: 156, price: "Rp 120.000", slot: "Hari ini 10:00", av: "DP", ok: false },
+];
+
+const SERVICES = [
+  { icon: "🧩", title: "Skrining AI", desc: "Deteksi dini via video & kuesioner", tag: "BARU", color: C.pink, page: "screening" },
+  { icon: "💬", title: "Chat Terapis", desc: "Terapi wicara & ABA online", tag: "24 JAM", color: "#7C3AED", page: "consult" },
+  { icon: "📍", title: "Klinik Terdekat", desc: "Cari klinik autism di sekitarmu", tag: "GPS", color: "#0891B2", page: "findDoctor" },
+  { icon: "📚", title: "Parent Training", desc: "Pelatihan orang tua anak autism", tag: "GRATIS", color: C.green, page: null },
+  { icon: "🧠", title: "Terapi ABA", desc: "Applied Behavior Analysis", tag: "POPULER", color: "#7C3AED", page: null },
+  { icon: "🎨", title: "Terapi Okupasi", desc: "Sensori & motorik anak", tag: "BARU", color: "#EA580C", page: null },
+  { icon: "👁️", title: "Eye Tracking", desc: "Analisis kontak mata digital", tag: "AI", color: "#0E7490", page: "screening" },
+  { icon: "📋", title: "Evaluasi ADOS", desc: "Jadwalkan evaluasi diagnostik", tag: "KLINIS", color: C.pinkDark, page: null },
+];
+
+const ARTICLES = [
+  { title: "Tanda-tanda Awal Autisme yang Sering Terlewatkan Orang Tua", cat: "Edukasi Autism", time: "5 menit lalu" },
+  { title: "ABA Therapy: Apa Itu dan Bagaimana Cara Kerjanya?", cat: "Panduan Terapi", time: "2 jam lalu" },
+  { title: "Cara Berkomunikasi Efektif dengan Anak Spektrum Autisme", cat: "Tips Parenting", time: "1 hari lalu" },
+  { title: "M-CHAT-R/F: Alat Skrining Autism Rekomendasi WHO", cat: "Riset & Jurnal", time: "2 hari lalu" },
+];
+
+const TESTIMONIALS = [
+  { name: "Rini Wulandari", city: "Semarang", text: "\"Anak saya terdeteksi dini lewat fitur AI Halodoc. Sekarang sudah menjalani terapi ABA dan perkembangannya luar biasa!\"" },
+  { name: "Ahmad Fauzi", city: "Jakarta", text: "\"Sangat membantu! Chat terapis online bisa dilakukan kapan saja, tidak perlu antre lama di klinik.\"" },
+  { name: "Dewi Kartika", city: "Surabaya", text: "\"Parent training-nya sangat bermanfaat. Kami jadi lebih paham cara mendukung perkembangan anak kami.\"" },
+];
+
+const QUESTIONS = [
+  { id: "eye", cat: "Kontak Mata", icon: "👁️", w: 1.5, q: "Apakah anak Anda melakukan kontak mata saat diajak bicara?", opts: ["Selalu konsisten", "Kadang-kadang", "Jarang sekali", "Tidak pernah"] },
+  { id: "name", cat: "Respons Nama", icon: "📢", w: 1.5, q: "Bagaimana anak merespons saat dipanggil namanya?", opts: ["Langsung menoleh", "Menoleh setelah diulang", "Jarang merespons", "Tidak merespons"] },
+  { id: "speech", cat: "Perkembangan Bicara", icon: "🗣️", w: 1.3, q: "Bagaimana kemampuan bicara anak Anda?", opts: ["Sesuai usia", "Sedikit terlambat", "Sangat terlambat", "Belum bicara"] },
+  { id: "point", cat: "Atensi Bersama", icon: "👆", w: 1.5, q: "Apakah anak menunjuk benda untuk berbagi minat (mis: menunjuk kupu-kupu)?", opts: ["Sering", "Kadang", "Jarang", "Tidak pernah"] },
+  { id: "rep", cat: "Perilaku Repetitif", icon: "🔄", w: 1.4, q: "Apakah anak melakukan gerakan berulang (tepuk tangan, berputar, dll)?", opts: ["Tidak pernah", "Sesekali", "Sering", "Hampir selalu"] },
+  { id: "play", cat: "Bermain Imajinatif", icon: "🎭", w: 1.3, q: "Apakah anak bisa bermain pura-pura (masak-masakan, dokter-dokteran)?", opts: ["Sangat imajinatif", "Bisa sedikit", "Jarang", "Tidak bisa"] },
+  { id: "social", cat: "Interaksi Sosial", icon: "🤝", w: 1.4, q: "Bagaimana anak berinteraksi dengan anak-anak lain seusianya?", opts: ["Sangat aktif", "Cukup baik", "Lebih suka sendiri", "Menghindari"] },
+  { id: "sensory", cat: "Kepekaan Sensorik", icon: "✋", w: 1.1, q: "Apakah anak menunjukkan reaksi berlebihan terhadap suara keras / tekstur / cahaya?", opts: ["Tidak ada", "Ringan", "Sedang", "Sangat sensitif"] },
+];
+
+const CHAT_BOT = {
+  greet: ["Halo! Saya HILDA, asisten AI Halodoc untuk layanan Autism Care. Ada yang bisa saya bantu? 😊", "Hai! Selamat datang. Saya HILDA siap membantu Anda tentang skrining dan layanan autism. 🧩"],
+  screen: ["Untuk mulai skrining autism gratis, klik menu 'Skrining AI' di atas ya! Hanya ~10 menit dan hasilnya langsung keluar. 🎯", "Skrining AI kami menggabungkan analisis video computer vision dan kuesioner M-CHAT-R/F. Klik 'Skrining AI' untuk mulai! ✅"],
+  doc: ["Saya bisa bantu temukan dokter spesialis autism terdekat. Klik 'Cari Dokter' di menu ya! Ada 4 spesialis di Semarang. 📍", "Halodoc punya 50+ spesialis autism. Cek halaman 'Cari Dokter' untuk lihat jadwal dan booking langsung! 🏥"],
+  aba: ["Terapi ABA (Applied Behavior Analysis) adalah terapi paling direkomendasikan untuk autism. Halodoc menyediakan terapis ABA bersertifikat online! 🧠", "ABA terbukti meningkatkan kemampuan komunikasi anak autism. Kami punya 30+ terapis ABA. Mau jadwalkan sesi?"],
+  default: ["Hmm, coba tanyakan tentang: skrining autism, cari dokter, atau terapi ABA ya! Saya siap membantu. 💙", "Maaf belum paham. Bisa tanya tentang: skrining, dokter spesialis, program terapi, atau parent training? 😊"],
+};
+
+function classify(txt) {
+  const t = txt.toLowerCase();
+  if (t.match(/halo|hai|hello|hi|selamat/)) return "greet";
+  if (t.match(/skrining|deteksi|test|tes|cek|screening/)) return "screen";
+  if (t.match(/dokter|klinik|konsultasi|rumah sakit/)) return "doc";
+  if (t.match(/aba|terapi|wicara|okupasi/)) return "aba";
+  return "default";
+}
+const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+
+// ────────────────────────────────────────────────
+// SMALL COMPONENTS
+// ────────────────────────────────────────────────
+function PBar({ v, color = C.pink }) {
+  return <div style={{ background: C.gray200, borderRadius: 8, height: 8, overflow: "hidden" }}><div style={{ width: `${Math.min(v, 100)}%`, height: "100%", background: color, borderRadius: 8, transition: "width 1.2s ease" }} /></div>;
+}
+
+function Chip({ label, color = C.pink }) {
+  return <span style={{ background: color + "18", color, border: `1px solid ${color}30`, borderRadius: 20, padding: "2px 9px", fontSize: 11, fontWeight: 700 }}>{label}</span>;
+}
+
+function Btn({ children, v = "primary", onClick, disabled, sx = {} }) {
+  const base = { borderRadius: 10, padding: "10px 20px", fontWeight: 700, fontSize: 14, cursor: disabled ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.2s", border: "none", fontFamily: "inherit", opacity: disabled ? 0.5 : 1 };
+  const variants = {
+    primary: { background: C.pink, color: C.white },
+    outline: { background: "transparent", color: C.pink, border: `2px solid ${C.pink}` },
+    ghost: { background: C.pinkLight, color: C.pink },
+    white: { background: C.white, color: C.pink },
+  };
+  return <button style={{ ...base, ...variants[v], ...sx }} onClick={onClick} disabled={disabled}>{children}</button>;
+}
+
+function Av({ s, size = 44 }) {
+  return <div style={{ width: size, height: size, borderRadius: "50%", background: `linear-gradient(135deg,${C.pink},${C.purple})`, color: C.white, fontWeight: 700, fontSize: size * 0.34, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{s}</div>;
+}
+
+// ────────────────────────────────────────────────
+// CHATBOT
+// ────────────────────────────────────────────────
+function ChatBot({ onClose }) {
+  const [msgs, setMsgs] = useState([{ from: "bot", text: "Halo! Saya HILDA, asisten AI Halodoc untuk layanan Autism Care. Ada yang bisa saya bantu? 🧩", t: "Sekarang" }]);
+  const [inp, setInp] = useState("");
+  const [typing, setTyping] = useState(false);
+  const bot = useRef(null);
+
+  useEffect(() => { bot.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs, typing]);
+
+  function send() {
+    const txt = inp.trim(); if (!txt) return;
+    const now = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    setMsgs(m => [...m, { from: "user", text: txt, t: now }]);
+    setInp(""); setTyping(true);
+    setTimeout(() => {
+      setMsgs(m => [...m, { from: "bot", text: rand(CHAT_BOT[classify(txt)]), t: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) }]);
+      setTyping(false);
+    }, 900 + Math.random() * 700);
   }
-};
 
-const behaviorQuestions = {
-  en: [
-    { id: "eye_contact", category: "Eye Contact", icon: "👁️", question: "Does your child make consistent eye contact during interactions?", options: ["Always", "Sometimes", "Rarely", "Never"] },
-    { id: "speech", category: "Speech Development", icon: "🗣️", question: "How would you describe your child's speech development?", options: ["Age-appropriate", "Slightly delayed", "Significantly delayed", "No speech"] },
-    { id: "repetitive", category: "Repetitive Actions", icon: "🔄", question: "Does your child engage in repetitive movements or behaviors (hand-flapping, rocking)?", options: ["Never", "Occasionally", "Frequently", "Very often"] },
-    { id: "social", category: "Social Response", icon: "🤝", question: "How does your child respond when called by name?", options: ["Responds immediately", "Responds after delay", "Inconsistent", "Rarely responds"] },
-    { id: "emotional", category: "Emotional Response", icon: "💛", question: "Does your child show interest in other children's play?", options: ["Very interested", "Somewhat interested", "Rarely interested", "No interest"] },
-    { id: "sensory", category: "Sensory Sensitivity", icon: "✋", question: "Does your child show unusual reactions to sounds, textures, or lights?", options: ["No unusual reactions", "Mild reactions", "Moderate reactions", "Severe reactions"] },
-    { id: "pointing", category: "Communication", icon: "👆", question: "Does your child point to objects to share interest (e.g., pointing at a bird)?", options: ["Often", "Sometimes", "Rarely", "Never"] },
-    { id: "imitation", category: "Imitation", icon: "🪞", question: "Does your child imitate facial expressions or actions?", options: ["Frequently", "Sometimes", "Rarely", "Never"] },
-  ],
-  id: [
-    { id: "eye_contact", category: "Kontak Mata", icon: "👁️", question: "Apakah anak Anda melakukan kontak mata secara konsisten saat berinteraksi?", options: ["Selalu", "Kadang-kadang", "Jarang", "Tidak pernah"] },
-    { id: "speech", category: "Perkembangan Bicara", icon: "🗣️", question: "Bagaimana perkembangan bicara anak Anda?", options: ["Sesuai usia", "Sedikit terlambat", "Sangat terlambat", "Tidak bicara"] },
-    { id: "repetitive", category: "Perilaku Repetitif", icon: "🔄", question: "Apakah anak Anda melakukan gerakan berulang (mengepak tangan, bergoyang)?", options: ["Tidak pernah", "Kadang-kadang", "Sering", "Sangat sering"] },
-    { id: "social", category: "Respons Sosial", icon: "🤝", question: "Bagaimana anak Anda merespons saat dipanggil namanya?", options: ["Langsung merespons", "Merespons setelah jeda", "Tidak konsisten", "Jarang merespons"] },
-    { id: "emotional", category: "Respons Emosional", icon: "💛", question: "Apakah anak Anda menunjukkan minat pada permainan anak lain?", options: ["Sangat berminat", "Cukup berminat", "Jarang berminat", "Tidak berminat"] },
-    { id: "sensory", category: "Kepekaan Sensorik", icon: "✋", question: "Apakah anak Anda menunjukkan reaksi tidak biasa terhadap suara, tekstur, atau cahaya?", options: ["Tidak ada reaksi", "Reaksi ringan", "Reaksi sedang", "Reaksi berat"] },
-    { id: "pointing", category: "Komunikasi", icon: "👆", question: "Apakah anak Anda menunjuk benda untuk berbagi ketertarikan?", options: ["Sering", "Kadang-kadang", "Jarang", "Tidak pernah"] },
-    { id: "imitation", category: "Imitasi", icon: "🪞", question: "Apakah anak Anda meniru ekspresi wajah atau tindakan?", options: ["Sering", "Kadang-kadang", "Jarang", "Tidak pernah"] },
-  ]
-};
+  const quick = ["Mulai skrining", "Cari dokter", "Info terapi ABA", "Parent training"];
 
-const doctors = [
-  { name: "dr. Anisa Rahma, Sp.A", specialty: "Pediatrician", rating: 4.9, reviews: 1243, exp: "12 years", avatar: "AR", available: true, price: "Rp 75.000", tag: "Top Doctor" },
-  { name: "dr. Budi Santoso, Sp.KJ", specialty: "Child Psychologist", rating: 4.8, reviews: 876, exp: "9 years", avatar: "BS", available: true, price: "Rp 95.000", tag: "Autism Specialist" },
-  { name: "dr. Citra Dewi, Sp.A(K)", specialty: "Pediatric Neurology", rating: 4.9, reviews: 2105, exp: "15 years", avatar: "CD", available: false, price: "Rp 120.000", tag: "Expert" },
-];
-
-const mockHistory = [
-  { id: 1, date: "2025-05-10", childName: "Budi (3y 2m)", risk: "low", confidence: 88, status: "complete" },
-  { id: 2, date: "2025-04-22", childName: "Budi (3y 1m)", risk: "low", confidence: 85, status: "complete" },
-  { id: 3, date: "2025-03-15", childName: "Budi (3y)", risk: "moderate", confidence: 72, status: "complete" },
-];
-
-const adminData = {
-  totalScreenings: 47829,
-  monthlyGrowth: "+23%",
-  lowRisk: 58,
-  moderateRisk: 29,
-  highRisk: 13,
-  accuracy: 94.2,
-  monthlyData: [3200, 4100, 5200, 6800, 7200, 8900, 9200, 10500, 11200, 12800, 13100, 14200],
-  ageGroups: [{ label: "12-24m", value: 28 }, { label: "24-36m", value: 35 }, { label: "36-48m", value: 22 }, { label: "48-60m", value: 15 }],
-};
-
-function RiskBadge({ risk, t }) {
-  const map = { low: { label: t.low_risk, bg: "#e8f5e9", color: "#2e7d32", border: "#a5d6a7" }, moderate: { label: t.mod_risk, bg: "#fff8e1", color: "#f57f17", border: "#ffe082" }, high: { label: t.high_risk, bg: "#ffebee", color: "#c62828", border: "#ef9a9a" } };
-  const s = map[risk];
-  return <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}`, borderRadius: 20, padding: "4px 14px", fontSize: 13, fontWeight: 600 }}>{s.label}</span>;
-}
-
-function ProgressBar({ value, max = 100, color = "#0066CC" }) {
   return (
-    <div style={{ background: "#e8edf2", borderRadius: 8, height: 8, overflow: "hidden" }}>
-      <div style={{ width: `${(value / max) * 100}%`, height: "100%", background: color, borderRadius: 8, transition: "width 1s ease" }} />
-    </div>
-  );
-}
-
-function MiniChart({ data, colors }) {
-  const max = Math.max(...data.map(d => d.value));
-  return (
-    <div style={{ display: "flex", gap: 8, alignItems: "flex-end", height: 80 }}>
-      {data.map((d, i) => (
-        <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-          <span style={{ fontSize: 10, color: "#666", fontWeight: 600 }}>{d.value}%</span>
-          <div style={{ width: "100%", height: `${(d.value / max) * 60}px`, background: colors[i], borderRadius: "4px 4px 0 0", transition: "height 0.8s ease" }} />
-          <span style={{ fontSize: 9, color: "#888", textAlign: "center" }}>{d.label}</span>
+    <div style={{ position: "fixed", bottom: 88, right: 20, width: 340, background: C.white, borderRadius: 20, boxShadow: "0 8px 40px #0003", zIndex: 1000, display: "flex", flexDirection: "column", overflow: "hidden", border: `1px solid ${C.gray200}` }}>
+      <div style={{ background: `linear-gradient(135deg,${C.pink},${C.purple})`, padding: "13px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🤖</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ color: C.white, fontWeight: 700, fontSize: 14 }}>HILDA</div>
+          <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 11 }}>● Online · Autism Care Assistant</div>
         </div>
-      ))}
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: C.white, borderRadius: 8, width: 28, height: 28, cursor: "pointer", fontSize: 14 }}>✕</button>
+      </div>
+
+      <div style={{ height: 300, overflowY: "auto", padding: "12px 10px", display: "flex", flexDirection: "column", gap: 10 }}>
+        {msgs.map((m, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: m.from === "user" ? "flex-end" : "flex-start", gap: 7, alignItems: "flex-end" }}>
+            {m.from === "bot" && <div style={{ fontSize: 18 }}>🤖</div>}
+            <div>
+              <div style={{ background: m.from === "user" ? C.pink : C.gray100, color: m.from === "user" ? C.white : C.gray800, borderRadius: m.from === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px", padding: "9px 13px", fontSize: 13, lineHeight: 1.55, maxWidth: 218 }}>{m.text}</div>
+              <div style={{ fontSize: 10, color: C.gray400, marginTop: 2, textAlign: m.from === "user" ? "right" : "left" }}>{m.t}</div>
+            </div>
+          </div>
+        ))}
+        {typing && (
+          <div style={{ display: "flex", gap: 7, alignItems: "flex-end" }}>
+            <div style={{ fontSize: 18 }}>🤖</div>
+            <div style={{ background: C.gray100, borderRadius: "16px 16px 16px 4px", padding: "10px 14px", display: "flex", gap: 4 }}>
+              {[0, 1, 2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: C.gray400, animation: `bop 1s ${i * 0.2}s infinite` }} />)}
+            </div>
+          </div>
+        )}
+        <div ref={bot} />
+      </div>
+
+      <div style={{ padding: "0 10px 6px", display: "flex", gap: 5, flexWrap: "wrap" }}>
+        {quick.map(q => <button key={q} onClick={() => setInp(q)} style={{ fontSize: 11, padding: "4px 9px", borderRadius: 20, border: `1px solid ${C.pink}`, background: C.pinkLight, color: C.pink, cursor: "pointer", fontFamily: "inherit" }}>{q}</button>)}
+      </div>
+
+      <div style={{ padding: "6px 10px 12px", display: "flex", gap: 7 }}>
+        <input value={inp} onChange={e => setInp(e.target.value)} onKeyDown={e => e.key === "Enter" && send()} placeholder="Ketik pesan..."
+          style={{ flex: 1, padding: "9px 13px", borderRadius: 20, border: `1.5px solid ${C.gray200}`, fontSize: 13, outline: "none", fontFamily: "inherit" }} />
+        <button onClick={send} style={{ background: C.pink, border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", fontSize: 15, color: C.white, display: "flex", alignItems: "center", justifyContent: "center" }}>➤</button>
+      </div>
+      <style>{`@keyframes bop{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}`}</style>
     </div>
   );
 }
 
-export default function HalodocAutismApp() {
+// ────────────────────────────────────────────────
+// FIND DOCTOR PAGE
+// ────────────────────────────────────────────────
+function FindDoctorPage() {
+  const [sel, setSel] = useState(null);
+  const [booked, setBooked] = useState(null);
+  const [filt, setFilt] = useState("Semua");
+  const filters = ["Semua", "Dokter Anak", "Psikiater", "Psikolog", "Neurologis"];
+
+  const shown = filt === "Semua" ? DOCTORS : DOCTORS.filter(d =>
+    (filt === "Dokter Anak" && d.spec.includes("Anak") && !d.spec.includes("Neurologi")) ||
+    (filt === "Psikiater" && d.spec.includes("Psikiater")) ||
+    (filt === "Psikolog" && d.spec.includes("Psikolog")) ||
+    (filt === "Neurologis" && d.spec.includes("Neurologi"))
+  );
+
+  return (
+    <div>
+      <div style={{ fontWeight: 800, fontSize: 24, color: C.gray800, marginBottom: 4 }}>📍 Dokter Spesialis Autism Terdekat</div>
+      <p style={{ color: C.gray600, marginBottom: 20 }}>Ditemukan {DOCTORS.length} dokter di sekitar Semarang yang siap membantu.</p>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {filters.map(f => (
+          <button key={f} onClick={() => setFilt(f)} style={{ padding: "6px 15px", borderRadius: 20, border: `1.5px solid ${filt === f ? C.pink : C.gray200}`, background: filt === f ? C.pink : C.white, color: filt === f ? C.white : C.gray600, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{f}</button>
+        ))}
+      </div>
+
+      {booked && (
+        <div style={{ background: C.greenLight, border: `1.5px solid #86EFAC`, borderRadius: 12, padding: "14px 18px", marginBottom: 20, display: "flex", gap: 10, alignItems: "center" }}>
+          <span style={{ fontSize: 22 }}>✅</span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: C.green }}>Janji berhasil dibuat!</div>
+            <div style={{ fontSize: 13, color: C.gray600 }}>Dengan {booked.name} · {booked.slot} · {booked.hosp}</div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "grid", gap: 14, marginBottom: 24 }}>
+        {shown.map(doc => (
+          <div key={doc.id} style={{ background: C.white, border: `1.5px solid ${sel?.id === doc.id ? C.pink : C.gray200}`, borderRadius: 14, padding: "18px 20px", cursor: "pointer", transition: "all 0.2s" }} onClick={() => setSel(sel?.id === doc.id ? null : doc)}>
+            <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <Av s={doc.av} />
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 2 }}>
+                  <span style={{ fontWeight: 700, fontSize: 15, color: C.gray800 }}>{doc.name}</span>
+                  {doc.ok && <Chip label="✓ Terverifikasi" color={C.green} />}
+                </div>
+                <div style={{ fontSize: 13, color: C.pink, fontWeight: 600, marginBottom: 3 }}>{doc.spec}</div>
+                <div style={{ fontSize: 12, color: C.gray600, marginBottom: 5 }}>🏥 {doc.hosp} · 📍 {doc.dist}</div>
+                <div style={{ display: "flex", gap: 14, fontSize: 12, color: C.gray600, flexWrap: "wrap" }}>
+                  <span>⭐ {doc.rating} ({doc.rev} ulasan)</span>
+                  <span style={{ color: doc.slot.includes("Hari ini") ? C.green : C.amber, fontWeight: 600 }}>● {doc.slot}</span>
+                </div>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ fontWeight: 700, color: C.pink, fontSize: 15 }}>{doc.price}</div>
+                <div style={{ fontSize: 11, color: C.gray400 }}>/konsultasi</div>
+                <div style={{ fontSize: 11, color: C.gray400, marginTop: 2 }}>Klik untuk detail</div>
+              </div>
+            </div>
+
+            {sel?.id === doc.id && (
+              <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${C.gray200}`, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <Btn onClick={e => { e.stopPropagation(); setBooked(doc); setSel(null); }}>📅 Buat Janji Temu</Btn>
+                <Btn v="outline" onClick={e => e.stopPropagation()}>💬 Chat Sekarang</Btn>
+                <Btn v="ghost" onClick={e => e.stopPropagation()}>🗺️ Rute ke Klinik</Btn>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Peta */}
+      <div style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 16, overflow: "hidden" }}>
+        <div style={{ padding: "14px 18px", borderBottom: `1px solid ${C.gray200}`, fontWeight: 700, fontSize: 14, color: C.gray800 }}>🗺️ Peta Dokter Terdekat · Semarang</div>
+        <div style={{ height: 240, background: "linear-gradient(135deg,#fce7f3 0%,#ede9fe 100%)", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ textAlign: "center", color: C.gray600 }}>
+            <div style={{ fontSize: 36, marginBottom: 8 }}>🗺️</div>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>Peta Interaktif</div>
+            <div style={{ fontSize: 12, marginTop: 3 }}>{DOCTORS.length} dokter spesialis autism di Semarang</div>
+          </div>
+          {DOCTORS.map((d, i) => (
+            <div key={i} title={d.name} onClick={() => setSel(d)} style={{ position: "absolute", top: `${18 + i * 18}%`, left: `${12 + i * 20}%`, background: sel?.id === d.id ? C.pinkDark : C.pink, color: C.white, borderRadius: "50%", width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, boxShadow: "0 2px 8px #0003", cursor: "pointer", transition: "all 0.2s", zIndex: 2 }}>
+              {i + 1}
+            </div>
+          ))}
+          <div style={{ position: "absolute", bottom: 12, right: 12, background: C.white, borderRadius: 10, padding: "8px 12px", fontSize: 11, color: C.gray600, border: `1px solid ${C.gray200}` }}>
+            {DOCTORS.map((d, i) => <div key={i} style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: i < DOCTORS.length - 1 ? 4 : 0 }}><span style={{ background: C.pink, color: C.white, borderRadius: "50%", width: 18, height: 18, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700 }}>{i + 1}</span>{d.name.split(",")[0]}</div>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────
+// MAIN APP
+// ────────────────────────────────────────────────
+export default function App() {
   const [page, setPage] = useState("home");
-  const [lang, setLang] = useState("id");
-  const [dark, setDark] = useState(false);
   const [step, setStep] = useState(0);
-  const [childInfo, setChildInfo] = useState({ name: "", age: "", gender: "" });
+  const [childName, setChildName] = useState("");
+  const [childAge, setChildAge] = useState("");
+  const [childGender, setChildGender] = useState("");
   const [answers, setAnswers] = useState({});
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
-  const [selectedVideo, setSelectedVideo] = useState(null);
-  const [animIn, setAnimIn] = useState(true);
-  const t = LANG[lang];
-
-  const bg = dark ? "#0d1117" : "#f5f7fa";
-  const card = dark ? "#161b22" : "#ffffff";
-  const cardBorder = dark ? "#30363d" : "#e8edf2";
-  const text = dark ? "#e6edf3" : "#1a2332";
-  const textSec = dark ? "#8b949e" : "#5a6a7e";
-  const primary = "#0066CC";
-  const teal = "#00a99d";
-  const navBg = dark ? "#161b22" : "#ffffff";
-
-  const questions = behaviorQuestions[lang];
-  const totalSteps = 4;
+  const [video, setVideo] = useState(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [anim, setAnim] = useState(true);
 
   useEffect(() => {
-    setAnimIn(false);
-    setTimeout(() => setAnimIn(true), 50);
+    setAnim(false); const t = setTimeout(() => setAnim(true), 40); return () => clearTimeout(t);
   }, [page, step]);
 
-  function computeRisk() {
-    const weights = {
-      eye_contact: 1.5,
-      speech: 1.3,
-      repetitive: 1.4,
-      social: 1.5,
-      emotional: 1.2,
-      sensory: 1.1,
-      pointing: 1.5,
-      imitation: 1.4,
-      routine: 1.2,
-      pretend_play: 1.5
-    };
-    let totalScore = 0;
-    let maxScore = 0;
-    const behaviorScores = questions.map((q, i) => {
-      const answer = answers[i] ?? 0;
-      const normalized =
-        answer / (q.options.length - 1);
-      const weight =
-        weights[q.id] || 1;
-      const weightedScore =
-        normalized * weight;
-      totalScore += weightedScore;
-      maxScore += weight;
-      return {
-        label: q.category,
-        score: Math.round(
-          normalized * 100
-        )
-      };
+  function goScreen() { setStep(0); setAnswers({}); setResult(null); setVideo(null); setPage("screening"); }
+
+  function computeScore() {
+    let tot = 0, mx = 0;
+    const scores = QUESTIONS.map((q, i) => {
+      const a = answers[i] ?? 0, n = a / (q.opts.length - 1);
+      tot += n * q.w; mx += q.w;
+      return { label: q.cat, score: Math.round(n * 100) };
     });
-
-    async function handleAIAnalysis() {
-      if (!selectedVideo) {
-        alert("Please upload a video first!");
-        return;
-      }
-      setAnalyzing(true);
-      try {
-        const formData = new FormData();
-        formData.append(
-          "file",
-          selectedVideo
-        );
-        const response = await fetch(
-          "http://127.0.0.1:8000/predict",
-          {
-            method: "POST",
-            body: formData
-          }
-        );
-        const aiData = await response.json();
-        const questionnaire =
-          computeRisk();
-        // FUSION SCORE
-        const finalScore = Math.round(
-          (questionnaire.score * 0.8) +
-          ((aiData.focus_percentage || 50) * 0.2)
-        );
-        let finalRisk = "low";
-        if (finalScore >= 65) {
-          finalRisk = "high";
-        }
-        else if (finalScore >= 35) {
-          finalRisk = "moderate";
-        }
-        setResult({
-          risk: finalRisk,
-          confidence:
-            aiData.confidence,
-          behaviorScores:
-            questionnaire.behaviorScores,
-          score:
-            finalScore
-        });
-        setStep(4);
-      }
-      catch (error) {
-        console.error(error);
-        alert("AI analysis failed.");
-      }
-      setAnalyzing(false);
-    }
-    
-    // FINAL SCORE
-
-    const finalScore =
-      (totalScore / maxScore) * 100;
-
-    // RISK CLASSIFICATION
-
-    let risk = "low";
-
-    if (finalScore >= 65) {
-      risk = "high";
-    }
-
-    else if (finalScore >= 35) {
-      risk = "moderate";
-    }
-
-    // CONFIDENCE
-
-    let confidence = 78;
-
-    if (finalScore >= 70) {
-      confidence = 94;
-    }
-
-    else if (finalScore >= 50) {
-      confidence = 88;
-    }
-
-    else if (finalScore >= 35) {
-      confidence = 82;
-    }
-
-    return {
-
-      risk,
-
-      confidence,
-
-      behaviorScores,
-
-      score: Math.round(finalScore)
-
-    };
-
+    return { fs: (tot / mx) * 100, bScores: scores };
   }
 
-  function handleSubmit() {
+  async function handleAnalyze(f) {
     setAnalyzing(true);
-    setTimeout(() => {
-      setResult(computeRisk());
-      setAnalyzing(false);
-      setStep(3);
-    }, 3200);
+    try {
+      const form = new FormData(); form.append("file", f);
+      const res = await fetch("http://127.0.0.1:8000/predict", { method: "POST", body: form });
+      if (!res.ok) throw new Error();
+      const ai = await res.json();
+      const { fs, bScores } = computeScore();
+      const vr = 100 - (ai.focus_percentage ?? 50);
+      const fused = Math.round(vr * 0.6 + fs * 0.4);
+      const risk = fused >= 60 ? "high" : fused >= 35 ? "moderate" : "low";
+      setResult({ risk, confidence: Math.round(ai.confidence), score: fused, bScores, videoData: ai });
+    } catch {
+      const { fs, bScores } = computeScore();
+      const risk = fs >= 60 ? "high" : fs >= 35 ? "moderate" : "low";
+      setResult({ risk, confidence: 78, score: Math.round(fs), bScores, videoData: null });
+      alert("⚠️ Server AI tidak terhubung. Hasil berdasarkan kuesioner saja.");
+    }
+    setAnalyzing(false); setStep(4);
   }
 
-  const navItems = [
-    { id: "home", label: t.nav_home, icon: "🏠" },
-    { id: "screening", label: t.nav_screening, icon: "🧩" },
-    { id: "history", label: t.nav_history, icon: "📋" },
-    { id: "about", label: t.nav_about, icon: "🤖" },
-    { id: "consult", label: t.nav_consult, icon: "👨‍⚕️" },
-    { id: "admin", label: t.nav_admin, icon: "📊" },
-  ];
+  // ── STEP BAR ─────────────────────────────────────
+  const stepLabels = ["Info Anak", "Perilaku", "Komunikasi", "Video AI", "Hasil"];
 
-  const s = {
-    app: { minHeight: "100vh", background: bg, color: text, fontFamily: "'DM Sans', 'Noto Sans', sans-serif", transition: "all 0.3s" },
-    nav: { background: navBg, borderBottom: `1px solid ${cardBorder}`, position: "sticky", top: 0, zIndex: 100, boxShadow: dark ? "0 1px 8px #0003" : "0 1px 8px #0001" },
-    navInner: { maxWidth: 1200, margin: "0 auto", padding: "0 20px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" },
-    logo: { display: "flex", alignItems: "center", gap: 8, cursor: "pointer" },
-    logoText: { fontSize: 20, fontWeight: 700, color: primary, letterSpacing: "-0.5px" },
-    logoBadge: { background: "#e8f4ff", color: primary, fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, border: `1px solid ${primary}20` },
-    navLinks: { display: "flex", gap: 4, alignItems: "center" },
-    navLink: (active) => ({ padding: "6px 14px", borderRadius: 8, fontSize: 13, fontWeight: active ? 600 : 400, color: active ? primary : textSec, background: active ? "#e8f4ff" : "transparent", cursor: "pointer", border: "none", transition: "all 0.2s" }),
-    navRight: { display: "flex", gap: 8, alignItems: "center" },
-    iconBtn: { background: "none", border: `1px solid ${cardBorder}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", fontSize: 14, color: textSec },
-    content: { maxWidth: 1200, margin: "0 auto", padding: "32px 20px", opacity: animIn ? 1 : 0, transform: animIn ? "translateY(0)" : "translateY(8px)", transition: "all 0.35s ease" },
-    hero: { background: `linear-gradient(135deg, ${primary} 0%, #0052a3 40%, #00a99d 100%)`, borderRadius: 20, padding: "52px 48px", color: "#fff", position: "relative", overflow: "hidden", marginBottom: 32 },
-    card: { background: card, border: `1px solid ${cardBorder}`, borderRadius: 16, padding: "24px 28px" },
-    pill: (active) => ({ background: active ? primary : dark ? "#21262d" : "#f0f4f8", color: active ? "#fff" : textSec, border: `1px solid ${active ? primary : cardBorder}`, borderRadius: 20, padding: "5px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer" }),
-    btn: (variant = "primary") => ({
-      background: variant === "primary" ? primary : variant === "teal" ? teal : "transparent",
-      color: variant === "outline" ? primary : "#fff",
-      border: variant === "outline" ? `2px solid ${primary}` : "none",
-      borderRadius: 10, padding: "12px 24px", fontWeight: 600, fontSize: 14, cursor: "pointer",
-      display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.2s"
-    }),
-    stepBar: { display: "flex", gap: 0, marginBottom: 32, position: "relative" },
-    stepDot: (active, done) => ({
-      width: 36, height: 36, borderRadius: "50%",
-      background: done ? teal : active ? primary : dark ? "#21262d" : "#e8edf2",
-      color: done || active ? "#fff" : textSec,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 14, fontWeight: 700, flexShrink: 0, zIndex: 2,
-      border: active ? `3px solid ${primary}40` : "none",
-      transition: "all 0.3s"
-    }),
-    stepLine: (done) => ({ flex: 1, height: 3, background: done ? teal : dark ? "#21262d" : "#e8edf2", marginTop: 17, transition: "background 0.4s" }),
-    input: { width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${cardBorder}`, background: dark ? "#21262d" : "#f8fafb", color: text, fontSize: 14, outline: "none", boxSizing: "border-box" },
-    select: { width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${cardBorder}`, background: dark ? "#21262d" : "#f8fafb", color: text, fontSize: 14, outline: "none" },
-    label: { fontSize: 13, fontWeight: 600, color: textSec, marginBottom: 6, display: "block" },
-  };
+  // ── SCREENING PAGE ────────────────────────────────
+  function ScreenPage() {
+    const curQs = step === 1 ? QUESTIONS.slice(0, 4) : step === 2 ? QUESTIONS.slice(4, 8) : [];
 
-  function HomePage() {
-    const awareness = [
-      { icon: "🧠", title: lang === "id" ? "Intervensi Lebih Efektif" : "More Effective Intervention", desc: lang === "id" ? "Terapi dini meningkatkan perkembangan kognitif dan sosial anak secara signifikan" : "Early therapy significantly improves cognitive and social development" },
-      { icon: "📈", title: lang === "id" ? "Hasil Lebih Baik" : "Better Outcomes", desc: lang === "id" ? "Anak-anak yang mendapat dukungan dini menunjukkan kemajuan yang luar biasa" : "Children who receive early support show remarkable progress" },
-      { icon: "👨‍👩‍👧", title: lang === "id" ? "Dukungan Keluarga" : "Family Support", desc: lang === "id" ? "Orang tua mendapatkan panduan dan strategi pengasuhan yang tepat" : "Parents receive proper guidance and parenting strategies" },
-      { icon: "💊", title: lang === "id" ? "Perencanaan Terapi" : "Therapy Planning", desc: lang === "id" ? "Rencana intervensi yang dipersonalisasi sesuai kebutuhan unik anak Anda" : "Personalized intervention plans tailored to your child's unique needs" },
-    ];
-    const services = [
-      { icon: "🏥", label: lang === "id" ? "Chat Dokter" : "Chat Doctor" },
-      { icon: "💊", label: lang === "id" ? "Apotek" : "Pharmacy" },
-      { icon: "🧪", label: lang === "id" ? "Cek Lab" : "Lab Check" },
-      { icon: "🏠", label: "Homecare" },
-      { icon: "🧬", label: "HaloSkin" },
-      { icon: "🧩", label: "AI Autism" },
-      { icon: "🧘", label: lang === "id" ? "Kesehatan Mental" : "Mental Health" },
-      { icon: "💛", label: "Parenting" },
-    ];
-    return (
-      <div>
-        {/* Hero */}
-        <div style={s.hero}>
-          <div style={{ position: "absolute", top: -40, right: -40, width: 280, height: 280, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
-          <div style={{ position: "absolute", bottom: -60, left: "40%", width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
-          <div style={{ maxWidth: 600, position: "relative" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 700, marginBottom: 20, letterSpacing: 0.5 }}>
-              ✨ FITUR BARU · NEW FEATURE
-            </div>
-            <h1 style={{ fontSize: "clamp(24px, 4vw, 40px)", fontWeight: 800, margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-0.5px" }}>{t.tagline}</h1>
-            <p style={{ fontSize: 16, opacity: 0.88, marginBottom: 28, lineHeight: 1.6 }}>{t.hero_sub}</p>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button style={{ ...s.btn(), background: "#fff", color: primary }} onClick={() => { setPage("screening"); setStep(0); setAnswers({}); setResult(null); }}>🧩 {t.start_btn}</button>
-              <button style={{ ...s.btn("outline"), borderColor: "rgba(255,255,255,0.6)", color: "#fff" }} onClick={() => setPage("about")}>📖 {t.learn_btn}</button>
-            </div>
-          </div>
-          <div style={{ position: "absolute", right: 40, top: "50%", transform: "translateY(-50%)", fontSize: 80, opacity: 0.15, display: "none" }}>🧩</div>
-        </div>
+    // Local state untuk step 0 (FIX BUG INPUT)
+    const [ln, setLn] = useState(childName);
+    const [la, setLa] = useState(childAge);
+    const [lg, setLg] = useState(childGender);
+    const [drag, setDrag] = useState(false);
 
-        {/* AI Feature Banner */}
-        <div style={{ ...s.card, background: dark ? "#0d2137" : "#eef6ff", border: `1.5px solid ${primary}30`, marginBottom: 32, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ fontSize: 40 }}>🤖</div>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: primary, marginBottom: 2, letterSpacing: 1 }}>HALODOC AI · EARLY SCREENING</div>
-              <div style={{ fontWeight: 700, fontSize: 18, color: text }}>AI Early Autism Screening</div>
-              <div style={{ fontSize: 13, color: textSec }}>Powered by Machine Learning · {lang === "id" ? "Didukung Oleh Tim Dokter Halodoc" : "Backed by Halodoc Medical Team"}</div>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <div style={{ textAlign: "center", padding: "8px 20px", background: dark ? "#1a2a3a" : "#fff", borderRadius: 10, border: `1px solid ${cardBorder}` }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: primary }}>94.2%</div>
-              <div style={{ fontSize: 11, color: textSec }}>{lang === "id" ? "Akurasi Model" : "Model Accuracy"}</div>
-            </div>
-            <div style={{ textAlign: "center", padding: "8px 20px", background: dark ? "#1a2a3a" : "#fff", borderRadius: 10, border: `1px solid ${cardBorder}` }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: teal }}>47K+</div>
-              <div style={{ fontSize: 11, color: textSec }}>{lang === "id" ? "Skrining Selesai" : "Screenings Done"}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Services Grid */}
-        <div style={{ ...s.card, marginBottom: 32 }}>
-          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>{lang === "id" ? "Layanan Halodoc" : "Halodoc Services"}</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 12 }}>
-            {services.map((svc, i) => (
-              <div key={i} onClick={() => svc.label === "AI Autism" && (setPage("screening"), setStep(0))} style={{ textAlign: "center", padding: "16px 8px", borderRadius: 12, cursor: "pointer", border: `1px solid ${cardBorder}`, background: svc.label === "AI Autism" ? (dark ? "#0d2137" : "#eef6ff") : "transparent", transition: "all 0.2s" }}>
-                <div style={{ fontSize: 28, marginBottom: 8 }}>{svc.icon}</div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: svc.label === "AI Autism" ? primary : textSec }}>{svc.label}</div>
-                {svc.label === "AI Autism" && <div style={{ fontSize: 9, color: primary, fontWeight: 700, marginTop: 2 }}>NEW</div>}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Awareness */}
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <h2 style={{ fontSize: 26, fontWeight: 800, color: text, margin: "0 0 8px" }}>{t.awareness_title}</h2>
-            <p style={{ color: textSec, fontSize: 15 }}>{t.awareness_sub}</p>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
-            {awareness.map((a, i) => (
-              <div key={i} style={{ ...s.card, display: "flex", gap: 16, alignItems: "flex-start" }}>
-                <div style={{ fontSize: 32, flexShrink: 0 }}>{a.icon}</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{a.title}</div>
-                  <div style={{ fontSize: 13, color: textSec, lineHeight: 1.6 }}>{a.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16, marginBottom: 32 }}>
-          {[
-            { label: "Skrining Selesai", value: "47,829", color: primary, icon: "🧩" },
-            { label: "Dokter Terdaftar", value: "1,200+", color: teal, icon: "👨‍⚕️" },
-            { label: "Akurasi AI", value: "94.2%", color: "#f57f17", icon: "🎯" },
-            { label: "Orang Tua Terbantu", value: "32,000+", color: "#2e7d32", icon: "💛" },
-          ].map((stat, i) => (
-            <div key={i} style={{ ...s.card, textAlign: "center", padding: 20 }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>{stat.icon}</div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: stat.color, marginBottom: 4 }}>{stat.value}</div>
-              <div style={{ fontSize: 12, color: textSec }}>{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  function ScreeningPage() {
-    const stepLabels = [
-      t.step_child_info,
-      t.step_behavior,
-      t.step_social,
-      "Video AI",
-      t.step_result
-    ];
-    const qPerStep = [0, 4, 4];
-    const currentQs = step === 1 ? questions.slice(0, 4) : step === 2 ? questions.slice(4, 8) : [];
+    function saveInfo() { setChildName(ln); setChildAge(la); setChildGender(lg); setStep(1); }
 
     return (
-      <div style={{ maxWidth: 720, margin: "0 auto" }}>
-        {/* Step Progress */}
-        <div style={s.stepBar}>
-          {stepLabels.map((label, i) => (
+      <div style={{ maxWidth: 700, margin: "0 auto" }}>
+        {/* Step bar */}
+        <div style={{ display: "flex", alignItems: "flex-start", marginBottom: 28 }}>
+          {stepLabels.map((l, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", flex: i < stepLabels.length - 1 ? 1 : "none" }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <div style={s.stepDot(step === i, step > i)}>{step > i ? "✓" : i + 1}</div>
-                <span style={{ fontSize: 11, color: step === i ? primary : textSec, fontWeight: step === i ? 600 : 400, whiteSpace: "nowrap" }}>{label}</span>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: step > i ? C.green : step === i ? C.pink : C.gray200, color: step >= i ? C.white : C.gray600, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, transition: "all 0.3s", boxShadow: step === i ? `0 0 0 4px ${C.pink}25` : "none" }}>
+                  {step > i ? "✓" : i + 1}
+                </div>
+                <span style={{ fontSize: 10, color: step === i ? C.pink : C.gray400, fontWeight: step === i ? 700 : 400, whiteSpace: "nowrap" }}>{l}</span>
               </div>
-              {i < stepLabels.length - 1 && <div style={s.stepLine(step > i)} />}
+              {i < stepLabels.length - 1 && <div style={{ flex: 1, height: 3, background: step > i ? C.green : C.gray200, marginTop: 15, transition: "background 0.4s" }} />}
             </div>
           ))}
         </div>
 
-        <div style={s.card}>
-          {/* Step 0: Child Info */}
+        <div style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 16, padding: "28px 32px" }}>
+
+          {/* STEP 0: INFO ANAK */}
           {step === 0 && (
             <div>
-              <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 6 }}>🧒 {t.step_child_info}</div>
-              <p style={{ color: textSec, fontSize: 14, marginBottom: 24 }}>{lang === "id" ? "Masukkan informasi dasar anak Anda untuk memulai skrining." : "Enter your child's basic information to begin screening."}</p>
-              <div style={{ display: "grid", gap: 18 }}>
-                <div><label style={s.label}>{t.child_name}</label><input style={s.input} value={childInfo.name} onChange={e => setChildInfo({ ...childInfo, name: e.target.value })} placeholder={lang === "id" ? "Nama lengkap anak" : "Child's full name"} /></div>
-                <div><label style={s.label}>{t.child_age}</label><input style={s.input} type="number" min={12} max={72} value={childInfo.age} onChange={e => setChildInfo({ ...childInfo, age: e.target.value })} placeholder="e.g. 36" /></div>
+              <div style={{ fontWeight: 700, fontSize: 20, color: C.gray800, marginBottom: 6 }}>🧒 Informasi Anak</div>
+              <p style={{ color: C.gray600, fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>Masukkan informasi dasar anak Anda untuk memulai skrining.</p>
+              <div style={{ display: "grid", gap: 20 }}>
                 <div>
-                  <label style={s.label}>{t.child_gender}</label>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: C.gray600, marginBottom: 6, display: "block" }}>Nama Anak</label>
+                  <input value={ln} onChange={e => setLn(e.target.value)} placeholder="Contoh: Budi Santoso"
+                    style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${C.gray200}`, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} autoComplete="off" />
+                </div>
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: C.gray600, marginBottom: 6, display: "block" }}>Usia Anak (bulan)</label>
+                  <input type="number" min={12} max={72} value={la} onChange={e => setLa(e.target.value)} placeholder="Contoh: 36"
+                    style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${C.gray200}`, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
+                  {la && Number(la) >= 12 && <div style={{ fontSize: 12, color: C.pink, marginTop: 4 }}>= {Math.floor(Number(la) / 12)} tahun {Number(la) % 12} bulan</div>}
+                </div>
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: C.gray600, marginBottom: 8, display: "block" }}>Jenis Kelamin</label>
                   <div style={{ display: "flex", gap: 12 }}>
-                    {[{ val: "male", label: t.male }, { val: "female", label: t.female }].map(g => (
-                      <div key={g.val} onClick={() => setChildInfo({ ...childInfo, gender: g.val })} style={{ flex: 1, padding: 14, borderRadius: 10, cursor: "pointer", border: `2px solid ${childInfo.gender === g.val ? primary : cardBorder}`, background: childInfo.gender === g.val ? (dark ? "#0d2137" : "#eef6ff") : "transparent", textAlign: "center", fontWeight: 600, fontSize: 14, color: childInfo.gender === g.val ? primary : textSec, transition: "all 0.2s" }}>
-                        {g.val === "male" ? "👦" : "👧"} {g.label}
+                    {[{ v: "male", l: "Laki-laki", e: "👦" }, { v: "female", l: "Perempuan", e: "👧" }].map(g => (
+                      <div key={g.v} onClick={() => setLg(g.v)} style={{ flex: 1, padding: 14, borderRadius: 12, cursor: "pointer", textAlign: "center", border: `2px solid ${lg === g.v ? C.pink : C.gray200}`, background: lg === g.v ? C.pinkLight : C.white, transition: "all 0.2s" }}>
+                        <div style={{ fontSize: 28, marginBottom: 6 }}>{g.e}</div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: lg === g.v ? C.pink : C.gray600 }}>{g.l}</div>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
               <div style={{ marginTop: 28, display: "flex", justifyContent: "flex-end" }}>
-                <button style={s.btn()} onClick={() => setStep(1)} disabled={!childInfo.name || !childInfo.age || !childInfo.gender}>{t.next} →</button>
+                <Btn onClick={saveInfo} disabled={!ln.trim() || !la || !lg}>Lanjut →</Btn>
               </div>
             </div>
           )}
 
-          {/* Steps 1-2: Questions */}
+          {/* STEPS 1–2: QUESTIONS */}
           {(step === 1 || step === 2) && (
             <div>
-              <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>
-                {step === 1 ? "🧠 " + (lang === "id" ? "Perilaku & Indra" : "Behavior & Senses") : "💬 " + (lang === "id" ? "Sosial & Komunikasi" : "Social & Communication")}
+              <div style={{ fontWeight: 700, fontSize: 18, color: C.gray800, marginBottom: 4 }}>
+                {step === 1 ? "🧠 Perilaku & Respons Dasar" : "💬 Komunikasi & Interaksi Sosial"}
               </div>
-              <p style={{ color: textSec, fontSize: 13, marginBottom: 24 }}>{lang === "id" ? `Pertanyaan ${step === 1 ? "1-4" : "5-8"} dari 8` : `Questions ${step === 1 ? "1-4" : "5-8"} of 8`}</p>
-              <div style={{ marginBottom: 16 }}><ProgressBar value={step === 1 ? 25 : 75} /></div>
-              <div style={{ display: "grid", gap: 20 }}>
-                {currentQs.map((q, i) => {
-                  const qIdx = step === 1 ? i : i + 4;
+              <p style={{ color: C.gray600, fontSize: 13, marginBottom: 16 }}>Pertanyaan {step === 1 ? "1–4" : "5–8"} dari 8 · Pilih yang paling mendekati kondisi anak Anda</p>
+              <div style={{ marginBottom: 20 }}><PBar v={step === 1 ? 30 : 75} /></div>
+              <div style={{ display: "grid", gap: 14 }}>
+                {curQs.map((q, i) => {
+                  const idx = step === 1 ? i : i + 4;
                   return (
-                    <div key={q.id} style={{ padding: 18, borderRadius: 12, border: `1px solid ${cardBorder}`, background: dark ? "#21262d" : "#f8fafb" }}>
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
-                        <span style={{ fontSize: 22 }}>{q.icon}</span>
+                    <div key={q.id} style={{ padding: 16, borderRadius: 12, border: `1px solid ${C.gray200}`, background: C.gray50 }}>
+                      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                        <span style={{ fontSize: 22, flexShrink: 0 }}>{q.icon}</span>
                         <div>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: primary, marginBottom: 4, letterSpacing: 0.5 }}>{q.category.toUpperCase()}</div>
-                          <div style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.5 }}>{q.question}</div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: C.pink, marginBottom: 3, letterSpacing: 0.5 }}>{q.cat.toUpperCase()}</div>
+                          <div style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.6, color: C.gray800 }}>{q.q}</div>
                         </div>
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                        {q.options.map((opt, oi) => (
-                          <div key={oi} onClick={() => setAnswers(prev => ({ ...prev, [qIdx]: oi }))} style={{ padding: "10px 14px", borderRadius: 8, cursor: "pointer", border: `1.5px solid ${answers[qIdx] === oi ? primary : cardBorder}`, background: answers[qIdx] === oi ? (dark ? "#0d2137" : "#eef6ff") : "transparent", fontSize: 13, fontWeight: answers[qIdx] === oi ? 600 : 400, color: answers[qIdx] === oi ? primary : textSec, transition: "all 0.15s" }}>
-                            {answers[qIdx] === oi ? "● " : "○ "}{opt}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7 }}>
+                        {q.opts.map((opt, oi) => (
+                          <div key={oi} onClick={() => setAnswers(p => ({ ...p, [idx]: oi }))}
+                            style={{ padding: "9px 12px", borderRadius: 8, cursor: "pointer", border: `1.5px solid ${answers[idx] === oi ? C.pink : C.gray200}`, background: answers[idx] === oi ? C.pinkLight : C.white, fontSize: 13, fontWeight: answers[idx] === oi ? 600 : 400, color: answers[idx] === oi ? C.pink : C.gray600, transition: "all 0.15s" }}>
+                            {answers[idx] === oi ? "● " : "○ "}{opt}
                           </div>
                         ))}
                       </div>
@@ -540,255 +414,190 @@ export default function HalodocAutismApp() {
                   );
                 })}
               </div>
-              <div style={{ marginTop: 28, display: "flex", justifyContent: "space-between" }}>
-                <button style={s.btn("outline")} onClick={() => setStep(step - 1)}>← {t.back}</button>
-                {step === 1 ? (
-                  <button style={s.btn()} onClick={() => setStep(2)} disabled={currentQs.some((_, i) => answers[i] === undefined)}>{t.next} →</button>
-                ) : (
-                  <button style={{ ...s.btn("teal") }} onClick={handleSubmit} disabled={[4, 5, 6, 7].some(i => answers[i] === undefined)}>🤖 {t.submit_screening}</button>
-                )}
+              <div style={{ marginTop: 22, display: "flex", justifyContent: "space-between" }}>
+                <Btn v="outline" onClick={() => setStep(s => s - 1)}>← Kembali</Btn>
+                {step === 1
+                  ? <Btn onClick={() => setStep(2)} disabled={curQs.some((_, i) => answers[i] === undefined)}>Lanjut →</Btn>
+                  : <Btn onClick={() => setStep(3)} disabled={[4, 5, 6, 7].some(i => answers[i] === undefined)}>🎥 Upload Video AI</Btn>}
               </div>
             </div>
           )}
 
-          {/* Analyzing */}
-          {analyzing && (
-            <div style={{ textAlign: "center", padding: "40px 0" }}>
-              <div style={{ fontSize: 48, marginBottom: 20 }}>🤖</div>
-              <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>{t.analyzing}</div>
-              <p style={{ color: textSec, fontSize: 14, marginBottom: 32 }}>{lang === "id" ? "Mohon tunggu, model AI sedang memproses data perilaku anak Anda..." : "Please wait, our AI model is processing your child's behavioral data..."}</p>
-              <div style={{ display: "grid", gap: 10, maxWidth: 400, margin: "0 auto" }}>
-                {(lang === "id" ? ["Menganalisis pola perilaku...", "Memproses data komunikasi...", "Menjalankan model klasifikasi...", "Menghasilkan rekomendasi..."] : ["Analyzing behavioral patterns...", "Processing communication data...", "Running classification model...", "Generating recommendations..."]).map((msg, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", borderRadius: 8, border: `1px solid ${cardBorder}`, background: dark ? "#21262d" : "#f8fafb" }}>
-                    <div style={{ width: 16, height: 16, borderRadius: "50%", border: `2px solid ${primary}`, borderTopColor: "transparent", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, color: textSec }}>{msg}</span>
-                  </div>
-                ))}
-              </div>
-              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-            </div>
-          )}
+          {/* STEP 3: VIDEO UPLOAD */}
+          {step === 3 && (() => {
+            const [drag, setDrag] = useState(false);
+            const loadSteps = ["Mengekstrak frame video...", "Mendeteksi wajah & pose (MediaPipe)...", "Menghitung persentase fokus mata...", "Menjalankan Random Forest model...", "Menggabungkan skor kuesioner + video...", "Menghasilkan laporan analisis..."];
+            return (
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 20, color: C.gray800, marginBottom: 6 }}>🎥 Upload Video Anak</div>
+                <p style={{ color: C.gray600, fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>Upload video 1–3 menit saat anak bermain atau berinteraksi. AI menganalisis kontak mata & gerakan secara otomatis.</p>
 
-          {/* Step 3: Video Upload */}
-
-          {step === 3 && !analyzing && (
-
-            <div>
-
-              <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: 22,
-                  marginBottom: 10
-                }}
-              >
-                🎥 AI Video Analysis
-              </div>
-
-              <p
-                style={{
-                  color: textSec,
-                  marginBottom: 24,
-                  lineHeight: 1.6
-                }}
-              >
-                Upload a short child interaction video
-                for AI behavioral analysis.
-              </p>
-
-              <div
-                style={{
-                  padding: 24,
-                  borderRadius: 16,
-                  border: `2px dashed ${cardBorder}`,
-                  background: dark ? "#21262d" : "#f8fafb"
-                }}
-              >
-
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={(e) =>
-                    setSelectedVideo(
-                      e.target.files[0]
-                    )
-                  }
-                />
-
-                {selectedVideo && (
-
-                  <div
-                    style={{
-                      marginTop: 14,
-                      color: primary,
-                      fontWeight: 600
-                    }}
-                  >
-                    ✅ {selectedVideo.name}
-                  </div>
-
-                )}
-
-              </div>
-
-              <div
-                style={{
-                  marginTop: 28,
-                  display: "flex",
-                  justifyContent: "space-between"
-                }}
-              >
-
-                <button
-                  style={s.btn("outline")}
-                  onClick={() => setStep(2)}
-                >
-                  ← {t.back}
-                </button>
-
-                <button
-                  style={s.btn("teal")}
-                  disabled={!selectedVideo}
-                  onClick={handleAIAnalysis}
-                >
-                  🤖 Analyze Video
-                </button>
-
-              </div>
-
-            </div>
-
-          )}
-
-          {/* Result */}
-
-          {step === 4 && result && !analyzing && (
-
-            <ResultView
-              result={result}
-              childInfo={childInfo}
-            />
-
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  function ResultView({ result, childInfo }) {
-    const riskConfig = {
-      low: { color: "#2e7d32", bg: "#e8f5e9", icon: "✅", title: lang === "id" ? "Risiko Rendah" : "Low Risk", desc: lang === "id" ? "Anak Anda menunjukkan pola perilaku yang umumnya sesuai perkembangan. Tetap pantau dan lakukan pemeriksaan rutin." : "Your child shows behavioral patterns generally in line with typical development. Continue monitoring and regular check-ups." },
-      moderate: { color: "#f57f17", bg: "#fff8e1", icon: "⚠️", title: lang === "id" ? "Risiko Sedang" : "Moderate Risk", desc: lang === "id" ? "Beberapa tanda yang memerlukan perhatian terdeteksi. Konsultasi dengan dokter anak atau psikolog anak sangat disarankan." : "Some signs requiring attention were detected. Consultation with a pediatrician or child psychologist is strongly recommended." },
-      high: { color: "#c62828", bg: "#ffebee", icon: "🔴", title: lang === "id" ? "Risiko Tinggi" : "High Risk", desc: lang === "id" ? "Beberapa indikator yang perlu perhatian segera terdeteksi. Segera konsultasikan dengan spesialis anak atau dokter tumbuh kembang." : "Several indicators requiring immediate attention detected. Please consult a pediatric specialist urgently." },
-    };
-    const rc = riskConfig[result.risk];
-    const recs = {
-      low: lang === "id" ? ["Lanjutkan pemantauan perkembangan rutin", "Stimulasi bermain sosial yang kaya", "Pertahankan jadwal imunisasi", "Skrining ulang dalam 6 bulan"] : ["Continue regular developmental monitoring", "Encourage rich social play", "Maintain immunization schedule", "Re-screen in 6 months"],
-      moderate: lang === "id" ? ["Konsultasi dengan dokter anak segera", "Terapi wicara dapat dipertimbangkan", "Program intervensi dini tersedia di Halodoc", "Skrining ulang dalam 3 bulan"] : ["Consult pediatrician promptly", "Speech therapy may be considered", "Early intervention programs available at Halodoc", "Re-screen in 3 months"],
-      high: lang === "id" ? ["Konsultasi spesialis segera dalam 1-2 minggu", "Evaluasi komprehensif oleh tim multidisiplin", "Program ABA dan terapi terpadu tersedia", "Dukungan keluarga dan komunitas orang tua"] : ["See specialist within 1-2 weeks urgently", "Comprehensive multi-disciplinary evaluation", "ABA therapy and integrated programs available", "Family support and parent community"],
-    };
-
-    return (
-      <div>
-        <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 24 }}>📊 {t.result_title}</div>
-
-        {/* Disclaimer */}
-        <div style={{ background: dark ? "#1a1a2e" : "#fff8e6", border: "1.5px solid #f0ad4e", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: dark ? "#ffd77a" : "#856404", marginBottom: 24, lineHeight: 1.6 }}>
-          {t.disclaimer}
-        </div>
-
-        {/* Risk Card */}
-        <div style={{ background: rc.bg, border: `2px solid ${rc.color}30`, borderRadius: 16, padding: 24, marginBottom: 24, textAlign: "center" }}>
-          <div style={{ fontSize: 48, marginBottom: 8 }}>{rc.icon}</div>
-          <div style={{ fontSize: 26, fontWeight: 800, color: rc.color, marginBottom: 6 }}>{rc.title}</div>
-          <p style={{ fontSize: 14, color: dark ? text : "#444", maxWidth: 500, margin: "0 auto", lineHeight: 1.6 }}>{rc.desc}</p>
-          <div style={{ marginTop: 20, display: "flex", justifyContent: "center", gap: 20, flexWrap: "wrap" }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 28, fontWeight: 800, color: rc.color }}>{result.confidence}%</div>
-              <div style={{ fontSize: 12, color: textSec }}>{t.confidence}</div>
-            </div>
-            <div style={{ width: 1, background: `${rc.color}30` }} />
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 28, fontWeight: 800, color: rc.color }}>{result.score}</div>
-              <div style={{ fontSize: 12, color: textSec }}>Risk Score</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Behavior Analysis */}
-        <div style={{ ...s.card, marginBottom: 20 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>📈 {t.behavior_analysis}</div>
-          <div style={{ display: "grid", gap: 12 }}>
-            {result.behaviorScores.map((b, i) => (
-              <div key={i}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 500 }}>{b.label}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: b.score > 60 ? "#c62828" : b.score > 35 ? "#f57f17" : "#2e7d32" }}>{b.score}%</span>
+                <div onDragOver={e => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
+                  onDrop={e => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files[0]; if (f?.type.startsWith("video/")) setVideo(f); }}
+                  style={{ padding: "28px 20px", borderRadius: 16, textAlign: "center", border: `2px dashed ${drag ? C.pink : video ? C.green : C.gray200}`, background: video ? C.greenLight : drag ? C.pinkLight : C.gray50, transition: "all 0.2s", marginBottom: 14 }}>
+                  {video ? (
+                    <>
+                      <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
+                      <div style={{ fontWeight: 700, color: C.green, marginBottom: 3 }}>Video dipilih!</div>
+                      <div style={{ fontSize: 13, color: C.gray600 }}>{video.name}</div>
+                      <div style={{ fontSize: 12, color: C.gray400, marginTop: 2 }}>{(video.size / 1024 / 1024).toFixed(1)} MB</div>
+                      <button onClick={() => setVideo(null)} style={{ marginTop: 10, fontSize: 12, color: C.red, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>Ganti video</button>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 40, marginBottom: 8 }}>📹</div>
+                      <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>Drag & drop video ke sini</div>
+                      <div style={{ fontSize: 13, color: C.gray600, marginBottom: 14 }}>atau pilih dari perangkat</div>
+                      <label style={{ display: "inline-flex", alignItems: "center", gap: 8, background: C.pink, color: C.white, borderRadius: 10, padding: "10px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                        📁 Pilih File Video
+                        <input type="file" accept="video/*" style={{ display: "none" }} onChange={e => { const f = e.target.files[0]; if (f) setVideo(f); }} />
+                      </label>
+                      <div style={{ fontSize: 11, color: C.gray400, marginTop: 10 }}>MP4, MOV, AVI · Maks. 200MB · Durasi 1–3 menit</div>
+                    </>
+                  )}
                 </div>
-                <ProgressBar value={b.score} color={b.score > 60 ? "#ef5350" : b.score > 35 ? "#ffa726" : teal} />
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Recommendations */}
-        <div style={{ ...s.card, marginBottom: 20 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>💡 {t.recommendations}</div>
-          <div style={{ display: "grid", gap: 10 }}>
-            {recs[result.risk].map((r, i) => (
-              <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 14px", borderRadius: 8, background: dark ? "#21262d" : "#f8fafb" }}>
-                <span style={{ color: rc.color, fontSize: 16, flexShrink: 0 }}>→</span>
-                <span style={{ fontSize: 14, lineHeight: 1.5 }}>{r}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+                <div style={{ padding: "12px 14px", borderRadius: 10, background: C.pinkLight, border: `1px solid ${C.pink}20`, marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.pink, marginBottom: 7 }}>💡 Tips merekam video terbaik</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5 }}>
+                    {["Wajah anak terlihat jelas", "Rekam saat bermain / berinteraksi", "Cahaya ruangan cukup terang", "Durasi ideal 1–3 menit"].map((t, i) => (
+                      <div key={i} style={{ fontSize: 12, color: C.gray600, display: "flex", gap: 5 }}><span style={{ color: C.green }}>✓</span>{t}</div>
+                    ))}
+                  </div>
+                </div>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <button style={s.btn()} onClick={() => setPage("consult")}>👨‍⚕️ {t.consult_pedia}</button>
-          <button style={{ ...s.btn("teal") }} onClick={() => setPage("consult")}>🧠 {t.consult_psych}</button>
-          <button style={{ ...s.btn("outline") }} onClick={() => alert(lang === "id" ? "Laporan PDF sedang diunduh..." : "PDF report downloading...")}>{t.download_pdf}</button>
+                {analyzing && (
+                  <div style={{ background: C.gray50, borderRadius: 12, padding: "18px 16px", marginBottom: 14 }}>
+                    <div style={{ textAlign: "center", marginBottom: 14 }}>
+                      <div style={{ fontSize: 32, marginBottom: 6 }}>🤖</div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>AI sedang menganalisis video...</div>
+                      <div style={{ fontSize: 13, color: C.gray600 }}>Mohon tunggu 30–60 detik</div>
+                    </div>
+                    {loadSteps.map((s, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 12px", borderRadius: 8, background: C.white, border: `1px solid ${C.gray200}`, marginBottom: 6 }}>
+                        <div style={{ width: 13, height: 13, borderRadius: "50%", border: `2px solid ${C.pink}`, borderTopColor: "transparent", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, color: C.gray600 }}>{s}</span>
+                      </div>
+                    ))}
+                    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <Btn v="outline" onClick={() => setStep(2)} disabled={analyzing}>← Kembali</Btn>
+                  <Btn onClick={() => handleAnalyze(video)} disabled={!video || analyzing}>🤖 Analisis dengan AI</Btn>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* STEP 4: RESULT */}
+          {step === 4 && result && (() => {
+            const cfg = {
+              low: { color: C.green, bg: C.greenLight, icon: "✅", label: "Risiko Rendah", border: "#86EFAC" },
+              moderate: { color: C.amber, bg: C.amberLight, icon: "⚠️", label: "Risiko Sedang", border: "#FCD34D" },
+              high: { color: C.red, bg: C.redLight, icon: "🔴", label: "Risiko Tinggi", border: "#FCA5A5" },
+            };
+            const c = cfg[result.risk];
+            const recs = {
+              low: ["Pemantauan perkembangan rutin tiap 6 bulan", "Perkaya stimulasi bermain sosial & bahasa", "Pertahankan jadwal tumbuh kembang", "Skrining ulang disarankan dalam 6 bulan"],
+              moderate: ["Konsultasi dokter anak dalam 2–4 minggu", "Evaluasi terapi wicara & ABA diperlukan", "Program parent training tersedia di Halodoc", "Skrining ulang disarankan dalam 3 bulan"],
+              high: ["Konsultasi spesialis segera dalam 1–2 minggu", "Evaluasi ADOS-2 oleh tim multidisiplin", "Mulai program ABA & terapi terpadu segera", "Bergabung komunitas orang tua autism"],
+            };
+            return (
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 20, color: C.gray800, marginBottom: 16 }}>📊 Hasil Skrining AI</div>
+                <div style={{ background: C.amberLight, border: `1.5px solid #FCD34D`, borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#92400E", marginBottom: 18, lineHeight: 1.6 }}>
+                  ⚕️ <strong>Disclaimer:</strong> Hasil ini hanya untuk bantuan skrining awal dan <strong>tidak menggantikan diagnosis medis profesional</strong>.
+                </div>
+                <div style={{ background: c.bg, border: `2px solid ${c.border}`, borderRadius: 16, padding: "24px", marginBottom: 18, textAlign: "center" }}>
+                  <div style={{ fontSize: 52, marginBottom: 8 }}>{c.icon}</div>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: c.color, marginBottom: 8 }}>{childName ? `${childName} — ` : ""}{c.label}</div>
+                  <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap", marginTop: 12 }}>
+                    {[{ v: `${result.confidence}%`, l: "Kepercayaan AI" }, { v: `${result.score}/100`, l: "Risk Score" }, result.videoData && { v: `${result.videoData.focus_percentage?.toFixed(0)}%`, l: "Fokus Mata (Video)" }].filter(Boolean).map((m, i, arr) => (
+                      <>
+                        <div key={i} style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: 26, fontWeight: 800, color: c.color }}>{m.v}</div>
+                          <div style={{ fontSize: 11, color: C.gray600 }}>{m.l}</div>
+                        </div>
+                        {i < arr.length - 1 && <div style={{ width: 1, background: c.border }} />}
+                      </>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Behavior bars */}
+                <div style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 14, padding: "20px 22px", marginBottom: 14 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 14, color: C.gray800 }}>📈 Analisis Perilaku per Domain</div>
+                  <div style={{ display: "grid", gap: 11 }}>
+                    {result.bScores.map((b, i) => (
+                      <div key={i}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <span style={{ fontSize: 13, color: C.gray800 }}>{b.label}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: b.score > 60 ? C.red : b.score > 35 ? C.amber : C.green }}>{b.score}%</span>
+                        </div>
+                        <PBar v={b.score} color={b.score > 60 ? C.red : b.score > 35 ? C.amber : C.green} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Rekomendasi */}
+                <div style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 14, padding: "20px 22px", marginBottom: 18 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12, color: C.gray800 }}>💡 Rekomendasi</div>
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {recs[result.risk].map((r, i) => (
+                      <div key={i} style={{ display: "flex", gap: 10, padding: "9px 14px", borderRadius: 8, background: C.gray50, alignItems: "flex-start" }}>
+                        <span style={{ color: c.color, fontWeight: 700, flexShrink: 0 }}>→</span>
+                        <span style={{ fontSize: 13, color: C.gray700, lineHeight: 1.6 }}>{r}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CTA Cari Dokter */}
+                <div style={{ background: `linear-gradient(135deg,${C.pink}12,${C.purple}08)`, border: `1.5px solid ${C.pink}30`, borderRadius: 14, padding: "20px 22px" }}>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: C.gray800, marginBottom: 4 }}>📍 Langkah Selanjutnya</div>
+                  <p style={{ fontSize: 13, color: C.gray600, marginBottom: 16, lineHeight: 1.6 }}>Temukan dokter spesialis autism terdekat dan buat janji konsultasi sekarang.</p>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <Btn onClick={() => setPage("findDoctor")}>📍 Cari Dokter Terdekat</Btn>
+                    <Btn v="outline" onClick={() => setPage("consult")}>💬 Konsultasi Online</Btn>
+                    <Btn v="ghost" onClick={() => alert("Mengunduh laporan PDF...")}>📄 Unduh Laporan</Btn>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     );
   }
 
+  // ── CONSULT PAGE ──────────────────────────────────
   function ConsultPage() {
     return (
       <div>
-        <div style={{ fontWeight: 800, fontSize: 26, marginBottom: 8 }}>👨‍⚕️ {lang === "id" ? "Konsultasi Dokter" : "Doctor Consultation"}</div>
-        <p style={{ color: textSec, marginBottom: 28 }}>{lang === "id" ? "Hubungkan langsung dengan dokter spesialis anak dan psikolog anak terpercaya." : "Connect directly with trusted pediatric specialists and child psychologists."}</p>
-
-        <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
-          {[t.consult_pedia, t.consult_psych, lang === "id" ? "Semua Dokter" : "All Doctors"].map((f, i) => (
-            <button key={i} style={s.pill(i === 0)}>{f}</button>
-          ))}
-        </div>
-
-        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>
-          {doctors.map((doc, i) => (
-            <div key={i} style={{ ...s.card, position: "relative" }}>
-              {doc.tag && <div style={{ position: "absolute", top: 16, right: 16, background: primary + "18", color: primary, fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 20, border: `1px solid ${primary}30` }}>{doc.tag}</div>}
-              <div style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 16 }}>
-                <div style={{ width: 52, height: 52, borderRadius: "50%", background: `linear-gradient(135deg, ${primary}, ${teal})`, color: "#fff", fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{doc.avatar}</div>
+        <div style={{ fontWeight: 800, fontSize: 24, color: C.gray800, marginBottom: 4 }}>👨‍⚕️ Konsultasi Spesialis Autism</div>
+        <p style={{ color: C.gray600, marginBottom: 24 }}>Terhubung langsung dengan dokter anak, psikiater, dan psikolog anak spesialis autism.</p>
+        <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))" }}>
+          {DOCTORS.map((doc, i) => (
+            <div key={i} style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 14, padding: "18px 20px" }}>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 14 }}>
+                <Av s={doc.av} size={48} />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }}>{doc.name}</div>
-                  <div style={{ fontSize: 12, color: textSec, marginBottom: 4 }}>{doc.specialty}</div>
-                  <div style={{ display: "flex", gap: 12, fontSize: 12, color: textSec }}>
-                    <span>⭐ {doc.rating}</span>
-                    <span>💬 {doc.reviews}</span>
-                    <span>🏆 {doc.exp}</span>
-                  </div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: C.gray800 }}>{doc.name}</div>
+                  <div style={{ fontSize: 12, color: C.pink, fontWeight: 600, marginBottom: 3 }}>{doc.spec}</div>
+                  <div style={{ fontSize: 12, color: C.gray600 }}>⭐ {doc.rating} · 💬 {doc.rev} ulasan</div>
                 </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 14, borderTop: `1px solid ${cardBorder}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, borderTop: `1px solid ${C.gray200}` }}>
                 <div>
-                  <div style={{ fontWeight: 700, color: primary }}>{doc.price}</div>
-                  <div style={{ fontSize: 11, color: doc.available ? "#2e7d32" : textSec }}>{doc.available ? (lang === "id" ? "● Tersedia Sekarang" : "● Available Now") : (lang === "id" ? "○ Besok" : "○ Tomorrow")}</div>
+                  <div style={{ fontWeight: 700, color: C.pink }}>{doc.price}</div>
+                  <div style={{ fontSize: 11, color: doc.slot.includes("Hari ini") ? C.green : C.amber, fontWeight: 600 }}>● {doc.slot}</div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button style={{ ...s.btn("outline"), padding: "8px 14px", fontSize: 12 }}>💬 Chat</button>
-                  <button style={{ ...s.btn(), padding: "8px 14px", fontSize: 12 }}>{t.book_now}</button>
+                  <Btn v="outline" sx={{ padding: "7px 12px", fontSize: 12 }}>💬 Chat</Btn>
+                  <Btn sx={{ padding: "7px 12px", fontSize: 12 }}>Booking</Btn>
                 </div>
               </div>
             </div>
@@ -798,83 +607,36 @@ export default function HalodocAutismApp() {
     );
   }
 
-  function HistoryPage() {
-    return (
-      <div>
-        <div style={{ fontWeight: 800, fontSize: 26, marginBottom: 8 }}>📋 {t.screening_history}</div>
-        <p style={{ color: textSec, marginBottom: 28 }}>{lang === "id" ? "Riwayat skrining dan perkembangan anak Anda." : "Your child's screening history and progress."}</p>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
-          <div style={{ display: "grid", gap: 12 }}>
-            {mockHistory.map(h => (
-              <div key={h.id} style={{ ...s.card, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                  <div style={{ width: 42, height: 42, borderRadius: 10, background: h.risk === "low" ? "#e8f5e9" : h.risk === "moderate" ? "#fff8e1" : "#ffebee", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
-                    {h.risk === "low" ? "✅" : h.risk === "moderate" ? "⚠️" : "🔴"}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{h.childName}</div>
-                    <div style={{ fontSize: 12, color: textSec }}>{h.date}</div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                  <RiskBadge risk={h.risk} t={t} />
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: 700, fontSize: 15 }}>{h.confidence}%</div>
-                    <div style={{ fontSize: 11, color: textSec }}>{t.confidence}</div>
-                  </div>
-                  <button style={{ ...s.btn("outline"), padding: "6px 12px", fontSize: 12 }}>📄 {lang === "id" ? "Lihat" : "View"}</button>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div>
-            <div style={{ ...s.card, marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16 }}>📈 {lang === "id" ? "Tren Risiko" : "Risk Trend"}</div>
-              <MiniChart data={[{ label: "Mar", value: 65 }, { label: "Apr", value: 58 }, { label: "May", value: 42 }]} colors={["#ef5350", "#ffa726", teal]} />
-              <p style={{ fontSize: 12, color: textSec, marginTop: 12, lineHeight: 1.5 }}>{lang === "id" ? "Tren membaik setelah intervensi dini dimulai." : "Trend improving after early intervention started."}</p>
-            </div>
-            <div style={{ ...s.card }}>
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>💡 {lang === "id" ? "Rekomendasi AI" : "AI Recommendations"}</div>
-              {(lang === "id" ? ["Lanjutkan terapi wicara mingguan", "Tingkatkan waktu bermain bersama", "Skrining ulang disarankan Agustus"] : ["Continue weekly speech therapy", "Increase joint play time", "Re-screening advised August"]).map((r, i) => (
-                <div key={i} style={{ fontSize: 13, padding: "8px 0", borderBottom: i < 2 ? `1px solid ${cardBorder}` : "none", color: textSec }}>→ {r}</div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // ── ABOUT PAGE ────────────────────────────────────
   function AboutPage() {
-    const features = [
-      { icon: "🤖", title: "Machine Learning Classification", desc: lang === "id" ? "Model Random Forest + Neural Network yang dilatih pada dataset 50,000+ kasus skrining autism tervalidasi secara klinis." : "Random Forest + Neural Network model trained on 50,000+ clinically validated autism screening cases." },
-      { icon: "🧬", title: lang === "id" ? "Analisis Pola Perilaku" : "Behavioral Pattern Analysis", desc: lang === "id" ? "Algoritma kami menganalisis 8 domain perilaku kunci yang berkorelasi dengan indikator DSM-5 untuk autism spectrum disorder." : "Our algorithm analyzes 8 key behavioral domains correlated with DSM-5 indicators for autism spectrum disorder." },
-      { icon: "📊", title: lang === "id" ? "AI Kesehatan Prediktif" : "Predictive Healthcare AI", desc: lang === "id" ? "Model prediktif kami divalidasi oleh tim dokter spesialis Halodoc dengan akurasi 94.2% pada populasi Indonesia." : "Our predictive model is validated by Halodoc's specialist team with 94.2% accuracy on Indonesian population." },
-      { icon: "🌱", title: lang === "id" ? "Dukungan Intervensi Dini" : "Early Intervention Support", desc: lang === "id" ? "Hasil skrining langsung terhubung ke rekomendasi terapi dan dokter spesialis yang tepat di platform Halodoc." : "Screening results connect directly to appropriate therapy recommendations and specialists on the Halodoc platform." },
-      { icon: "🔒", title: lang === "id" ? "Keamanan Data" : "Data Security", desc: lang === "id" ? "Data anak Anda dilindungi dengan enkripsi end-to-end dan kepatuhan penuh terhadap regulasi data kesehatan Indonesia." : "Your child's data is protected with end-to-end encryption and full compliance with Indonesian health data regulations." },
-      { icon: "🏥", title: lang === "id" ? "Validasi Klinis" : "Clinical Validation", desc: lang === "id" ? "Dikembangkan bersama tim dokter spesialis anak, psikiater anak, dan pakar tumbuh kembang dari rumah sakit mitra Halodoc." : "Developed with pediatric specialists, child psychiatrists, and developmental experts from Halodoc partner hospitals." },
+    const feats = [
+      { icon: "🤖", t: "Random Forest Classifier", d: "Model ML dilatih dari data eye-tracking 25+ anak. Mengklasifikasikan High ASD Risk, Hyperactive Behavior, atau Typical Development." },
+      { icon: "👁️", t: "MediaPipe Computer Vision", d: "Analisis setiap frame video: Face Detection, Pose Estimation, persentase fokus mata, dan pola gerakan pergelangan tangan." },
+      { icon: "📋", t: "Kuesioner M-CHAT-R/F", d: "8 domain perilaku berbasis Modified Checklist for Autism in Toddlers yang tervalidasi klinis internasional." },
+      { icon: "🔗", t: "Fusion Score (60/40)", d: "Hasil akhir = 60% analisis video AI + 40% kuesioner, menghasilkan prediksi lebih komprehensif." },
+      { icon: "🔒", t: "Keamanan Data", d: "Video diproses lokal via FastAPI dan dihapus otomatis setelah analisis. Enkripsi end-to-end sesuai regulasi kesehatan Indonesia." },
+      { icon: "📊", t: "Akurasi Tervalidasi", d: "Divalidasi tim dokter Halodoc: Akurasi 94,2%, Sensitivity 91,8%, Specificity 96,1%, AUC-ROC 0,97." },
     ];
     return (
       <div>
-        <div style={{ fontWeight: 800, fontSize: 26, marginBottom: 8 }}>🤖 {t.ai_tech}</div>
-        <p style={{ color: textSec, marginBottom: 32 }}>{lang === "id" ? "Didukung oleh kecerdasan buatan terdepan dan validasi klinis para ahli Halodoc." : "Powered by cutting-edge AI and clinical validation from Halodoc experts."}</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 18 }}>
-          {features.map((f, i) => (
-            <div key={i} style={{ ...s.card }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>{f.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>{f.title}</div>
-              <p style={{ fontSize: 13, color: textSec, lineHeight: 1.7, margin: 0 }}>{f.desc}</p>
+        <div style={{ fontWeight: 800, fontSize: 24, color: C.gray800, marginBottom: 4 }}>🤖 Teknologi AI Kami</div>
+        <p style={{ color: C.gray600, marginBottom: 24 }}>Didukung oleh computer vision, machine learning, dan validasi tim dokter Halodoc.</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(270px,1fr))", gap: 14, marginBottom: 22 }}>
+          {feats.map((f, i) => (
+            <div key={i} style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 14, padding: "18px" }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>{f.icon}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: C.gray800, marginBottom: 6 }}>{f.t}</div>
+              <p style={{ fontSize: 13, color: C.gray600, lineHeight: 1.7, margin: 0 }}>{f.d}</p>
             </div>
           ))}
         </div>
-        {/* Model accuracy visual */}
-        <div style={{ ...s.card, marginTop: 28 }}>
-          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 20 }}>🎯 {lang === "id" ? "Performa Model AI" : "AI Model Performance"}</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16 }}>
-            {[{ label: lang === "id" ? "Akurasi" : "Accuracy", value: "94.2%", color: primary }, { label: "Sensitivity", value: "91.8%", color: teal }, { label: "Specificity", value: "96.1%", color: "#2e7d32" }, { label: "AUC-ROC", value: "0.97", color: "#f57f17" }].map((m, i) => (
-              <div key={i} style={{ textAlign: "center", padding: "20px 16px", borderRadius: 12, background: dark ? "#21262d" : "#f8fafb", border: `1px solid ${cardBorder}` }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: m.color }}>{m.value}</div>
-                <div style={{ fontSize: 12, color: textSec, marginTop: 4 }}>{m.label}</div>
+        <div style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 14, padding: "20px 22px" }}>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 16, color: C.gray800 }}>🎯 Performa Model</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(130px,1fr))", gap: 10 }}>
+            {[{ l: "Accuracy", v: "94,2%", c: C.pink }, { l: "Sensitivity", v: "91,8%", c: C.purple }, { l: "Specificity", v: "96,1%", c: C.green }, { l: "AUC-ROC", v: "0,97", c: C.amber }].map((m, i) => (
+              <div key={i} style={{ textAlign: "center", padding: "14px 10px", borderRadius: 10, background: C.gray50, border: `1px solid ${C.gray200}` }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: m.c }}>{m.v}</div>
+                <div style={{ fontSize: 11, color: C.gray600, marginTop: 3 }}>{m.l}</div>
               </div>
             ))}
           </div>
@@ -883,120 +645,208 @@ export default function HalodocAutismApp() {
     );
   }
 
-  function AdminPage() {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const maxVal = Math.max(...adminData.monthlyData);
+  // ── HOME PAGE ─────────────────────────────────────
+  function HomePage() {
     return (
       <div>
-        <div style={{ fontWeight: 800, fontSize: 26, marginBottom: 8 }}>📊 {t.admin_title}</div>
-        <p style={{ color: textSec, marginBottom: 28 }}>{lang === "id" ? "Analitik dan wawasan platform skrining AI Halodoc." : "Analytics and insights for Halodoc AI screening platform."}</p>
+        {/* Hero */}
+        <div style={{ background: `linear-gradient(135deg,${C.pink} 0%,${C.pinkDark} 50%,${C.purple} 100%)`, borderRadius: 20, padding: "48px 44px", color: C.white, position: "relative", overflow: "hidden", marginBottom: 24 }}>
+          <div style={{ position: "absolute", top: -60, right: -60, width: 280, height: 280, borderRadius: "50%", background: "rgba(255,255,255,0.07)" }} />
+          <div style={{ position: "absolute", bottom: -80, left: "38%", width: 240, height: 240, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+          <div style={{ position: "relative", maxWidth: 580 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700, marginBottom: 16, letterSpacing: 0.5 }}>
+              ✨ BARU! · AUTISM CARE FEATURE
+            </div>
+            <h1 style={{ fontSize: "clamp(22px,4vw,36px)", fontWeight: 800, margin: "0 0 12px", lineHeight: 1.25, letterSpacing: "-0.5px" }}>
+              Deteksi Dini Autisme untuk<br />Masa Depan Cerah Anak Anda
+            </h1>
+            <p style={{ fontSize: 15, opacity: 0.9, marginBottom: 24, lineHeight: 1.7 }}>
+              Fitur AI pertama di Indonesia yang menggabungkan analisis video computer vision dan kuesioner klinis M-CHAT-R/F untuk skrining autism anak usia 1–6 tahun.
+            </p>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Btn v="white" onClick={goScreen}>🧩 Mulai Skrining Gratis</Btn>
+              <button onClick={() => setPage("about")} style={{ background: "transparent", border: "2px solid rgba(255,255,255,0.5)", color: C.white, borderRadius: 10, padding: "10px 20px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>📖 Pelajari Lebih Lanjut</button>
+            </div>
+          </div>
+        </div>
 
-        {/* KPI Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 28 }}>
-          {[
-            { label: t.total_screenings, value: "47,829", delta: "+23%", color: primary, icon: "🧩" },
-            { label: lang === "id" ? "Risiko Rendah" : "Low Risk", value: `${adminData.lowRisk}%`, delta: "+2%", color: "#2e7d32", icon: "✅" },
-            { label: lang === "id" ? "Risiko Sedang" : "Moderate Risk", value: `${adminData.moderateRisk}%`, delta: "-1%", color: "#f57f17", icon: "⚠️" },
-            { label: lang === "id" ? "Risiko Tinggi" : "High Risk", value: `${adminData.highRisk}%`, delta: "-1%", color: "#c62828", icon: "🔴" },
-            { label: t.accuracy, value: `${adminData.accuracy}%`, delta: "+0.3%", color: teal, icon: "🎯" },
-            { label: lang === "id" ? "Konsultasi Lanjut" : "Follow-up Consults", value: "12,450", delta: "+31%", color: "#7b1fa2", icon: "👨‍⚕️" },
-          ].map((kpi, i) => (
-            <div key={i} style={{ ...s.card, padding: 20 }}>
-              <div style={{ fontSize: 24, marginBottom: 8 }}>{kpi.icon}</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: kpi.color, marginBottom: 2 }}>{kpi.value}</div>
-              <div style={{ fontSize: 12, color: textSec, marginBottom: 6 }}>{kpi.label}</div>
-              <div style={{ fontSize: 11, color: kpi.delta.startsWith("+") ? "#2e7d32" : "#c62828", fontWeight: 700 }}>{kpi.delta} MoM</div>
+        {/* Stats */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))", gap: 12, marginBottom: 24 }}>
+          {[{ icon: "🧩", v: "47.829", l: "Skrining Selesai" }, { icon: "👨‍⚕️", v: "50+", l: "Spesialis Autism" }, { icon: "🎯", v: "94,2%", l: "Akurasi AI" }, { icon: "💛", v: "32.000+", l: "Keluarga Terbantu" }].map((s, i) => (
+            <div key={i} style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: 22, marginBottom: 4 }}>{s.icon}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: C.pink }}>{s.v}</div>
+              <div style={{ fontSize: 11, color: C.gray600 }}>{s.l}</div>
             </div>
           ))}
         </div>
 
-        {/* Monthly Chart */}
-        <div style={{ ...s.card, marginBottom: 24 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>📈 {lang === "id" ? "Skrining per Bulan (2025)" : "Monthly Screenings (2025)"}</div>
-          <div style={{ display: "flex", gap: 6, alignItems: "flex-end", height: 160 }}>
-            {adminData.monthlyData.map((v, i) => (
-              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <span style={{ fontSize: 9, color: textSec, fontWeight: 600 }}>{(v / 1000).toFixed(1)}k</span>
-                <div style={{ width: "100%", height: `${(v / maxVal) * 120}px`, background: i === 11 ? primary : (dark ? "#2d3748" : "#bfdbfe"), borderRadius: "4px 4px 0 0", transition: "height 0.6s ease" }} />
-                <span style={{ fontSize: 9, color: textSec }}>{months[i]}</span>
+        {/* Layanan Autism */}
+        <div style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 16, padding: "22px", marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 17, color: C.gray800 }}>Layanan Autism Care</div>
+              <div style={{ fontSize: 13, color: C.gray600 }}>Solusi lengkap deteksi & penanganan autism anak</div>
+            </div>
+            <button style={{ fontSize: 12, color: C.pink, fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>Lihat Semua →</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(130px,1fr))", gap: 10 }}>
+            {SERVICES.map((svc, i) => (
+              <div key={i} onClick={() => svc.page === "screening" ? goScreen() : svc.page ? setPage(svc.page) : null}
+                style={{ padding: "14px 10px", borderRadius: 12, border: `1.5px solid ${C.gray200}`, background: C.white, cursor: svc.page ? "pointer" : "default", textAlign: "center", transition: "all 0.2s", position: "relative" }}>
+                <div style={{ fontSize: 26, marginBottom: 6 }}>{svc.icon}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: C.gray800, marginBottom: 2 }}>{svc.title}</div>
+                <div style={{ fontSize: 10, color: C.gray600, lineHeight: 1.4 }}>{svc.desc}</div>
+                <div style={{ position: "absolute", top: 7, right: 7, background: svc.color, color: C.white, fontSize: 8, fontWeight: 700, padding: "2px 5px", borderRadius: 8 }}>{svc.tag}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Distribution + Age Groups */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-          <div style={{ ...s.card }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>{t.pred_dist}</div>
-            <div style={{ display: "grid", gap: 14 }}>
-              {[{ label: t.low_risk, val: adminData.lowRisk, color: "#4caf50" }, { label: t.mod_risk, val: adminData.moderateRisk, color: "#ff9800" }, { label: t.high_risk, val: adminData.highRisk, color: "#f44336" }].map((d, i) => (
-                <div key={i}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                    <span style={{ fontSize: 13 }}>{d.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: d.color }}>{d.val}%</span>
-                  </div>
-                  <ProgressBar value={d.val} color={d.color} />
-                </div>
-              ))}
-            </div>
+        {/* Board of Medical */}
+        <div style={{ background: C.pinkLight, borderRadius: 16, padding: "24px 28px", marginBottom: 24, display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 180 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.pink, letterSpacing: 1, marginBottom: 6 }}>HALODOC · BOARD OF MEDICAL EXCELLENCE</div>
+            <div style={{ fontWeight: 800, fontSize: 18, color: C.gray800, marginBottom: 8 }}>Diawasi Tim Medis Berpengalaman</div>
+            <p style={{ fontSize: 13, color: C.gray600, lineHeight: 1.7, margin: 0 }}>Protokol skrining autism Halodoc dikembangkan bersama dokter spesialis anak, psikiater anak, dan pakar tumbuh kembang Indonesia.</p>
           </div>
-          <div style={{ ...s.card }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>{lang === "id" ? "Distribusi Usia Skrining" : "Screening Age Distribution"}</div>
-            <MiniChart data={adminData.ageGroups} colors={[primary, teal, "#7b1fa2", "#f57f17"]} />
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-              {adminData.ageGroups.map((ag, i) => (
-                <span key={i} style={{ fontSize: 11, color: textSec }}>{ag.label}: {ag.value}%</span>
-              ))}
-            </div>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            {[{ i: "IRH", n: "Dr. Irwan H.", r: "Chief Medical Officer" }, { i: "NV", n: "Dr. Novi", r: "Medical Advisor" }, { i: "WS", n: "Dr. Wawan S.", r: "Autism Specialist" }].map((d, i) => (
+              <div key={i} style={{ textAlign: "center" }}><Av s={d.i} size={50} /><div style={{ fontSize: 12, fontWeight: 600, color: C.gray800, marginTop: 6 }}>{d.n}</div><div style={{ fontSize: 10, color: C.pink }}>{d.r}</div></div>
+            ))}
           </div>
+        </div>
+
+        {/* Artikel */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <div style={{ fontWeight: 800, fontSize: 17, color: C.gray800 }}>Artikel Autism Terkini</div>
+            <button style={{ fontSize: 12, color: C.pink, fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>Lihat Semua →</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 12 }}>
+            {ARTICLES.map((a, i) => (
+              <div key={i} style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 14, padding: "16px", cursor: "pointer" }}>
+                <Chip label={a.cat} />
+                <div style={{ fontWeight: 600, fontSize: 13, color: C.gray800, marginTop: 10, marginBottom: 6, lineHeight: 1.5 }}>{a.title}</div>
+                <div style={{ fontSize: 11, color: C.gray400 }}>{a.time}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Testimoni */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontWeight: 800, fontSize: 17, color: C.gray800, marginBottom: 14 }}>Kata Mereka tentang Halodoc Autism</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: 12 }}>
+            {TESTIMONIALS.map((t, i) => (
+              <div key={i} style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 14, padding: "18px 16px" }}>
+                <Av s={t.name[0]} size={40} />
+                <div style={{ fontSize: 13, color: C.gray700, lineHeight: 1.7, margin: "10px 0 8px", fontStyle: "italic" }}>{t.text}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: C.gray800 }}>{t.name}</div>
+                <div style={{ fontSize: 11, color: C.gray400 }}>{t.city}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CTA strip */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(180px,1fr))", gap: 12 }}>
+          {[{ l: "Mulai Skrining", i: "🧩", a: goScreen }, { l: "Chat HILDA", i: "💬", a: () => setChatOpen(true) }, { l: "Cari Klinik", i: "📍", a: () => setPage("findDoctor") }].map((c, i) => (
+            <div key={i} onClick={c.a} style={{ background: C.white, border: `2px solid ${C.pink}30`, borderRadius: 14, padding: "16px", textAlign: "center", cursor: "pointer", transition: "all 0.2s" }}>
+              <div style={{ fontSize: 30, marginBottom: 6 }}>{c.i}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: C.pink }}>{c.l}</div>
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
+  const navItems = [
+    { id: "home", l: "Beranda", i: "🏠" },
+    { id: "screening", l: "Skrining AI", i: "🧩" },
+    { id: "findDoctor", l: "Cari Dokter", i: "📍" },
+    { id: "consult", l: "Konsultasi", i: "👨‍⚕️" },
+    { id: "about", l: "Tentang AI", i: "🤖" },
+  ];
+
   return (
-    <div style={s.app}>
+    <div style={{ minHeight: "100vh", background: C.gray50, color: C.gray800, fontFamily: "'DM Sans','Noto Sans',sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      {/* Nav */}
-      <nav style={s.nav}>
-        <div style={s.navInner}>
-          <div style={s.logo} onClick={() => setPage("home")}>
-            <div style={{ width: 32, height: 32, background: primary, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ color: "#fff", fontSize: 16, fontWeight: 800 }}>H</span>
+
+      {/* NAVBAR */}
+      <nav style={{ background: C.white, borderBottom: `1px solid ${C.gray200}`, position: "sticky", top: 0, zIndex: 200, boxShadow: "0 1px 8px #00000010" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flexShrink: 0 }} onClick={() => setPage("home")}>
+            <div style={{ width: 30, height: 30, background: C.pink, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ color: C.white, fontSize: 14, fontWeight: 800 }}>H</span>
             </div>
-            <span style={s.logoText}>halodoc</span>
-            <span style={s.logoBadge}>AI Autism</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: C.pink, letterSpacing: "-0.5px" }}>halodoc</span>
+            <span style={{ background: C.pinkLight, color: C.pink, fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, border: `1px solid ${C.pink}30` }}>Autism Care</span>
           </div>
-          <div style={s.navLinks}>
+          <div style={{ display: "flex", gap: 2, alignItems: "center", overflowX: "auto" }}>
             {navItems.map(n => (
-              <button key={n.id} style={s.navLink(page === n.id)} onClick={() => { setPage(n.id); if (n.id === "screening") { setStep(0); setAnswers({}); setResult(null); } }}>
-                <span style={{ marginRight: 5 }}>{n.icon}</span>{n.label}
+              <button key={n.id} onClick={() => n.id === "screening" ? goScreen() : setPage(n.id)}
+                style={{ padding: "6px 11px", borderRadius: 8, fontSize: 13, fontWeight: page === n.id ? 600 : 400, color: page === n.id ? C.pink : C.gray600, background: page === n.id ? C.pinkLight : "transparent", cursor: "pointer", border: "none", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                <span style={{ marginRight: 4 }}>{n.i}</span>{n.l}
               </button>
             ))}
           </div>
-          <div style={s.navRight}>
-            <button style={s.iconBtn} onClick={() => setLang(l => l === "id" ? "en" : "id")}>🌐 {lang.toUpperCase()}</button>
-            <button style={s.iconBtn} onClick={() => setDark(d => !d)}>{dark ? "☀️" : "🌙"}</button>
-            <button style={{ ...s.btn(), padding: "8px 16px", fontSize: 13 }} onClick={() => { setPage("screening"); setStep(0); setAnswers({}); setResult(null); }}>🧩 {t.start_btn}</button>
+          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+            <button onClick={() => setChatOpen(o => !o)} style={{ background: C.pinkLight, border: `1px solid ${C.pink}30`, borderRadius: 8, padding: "7px 12px", cursor: "pointer", fontSize: 13, color: C.pink, fontWeight: 600, fontFamily: "inherit" }}>💬 HILDA</button>
+            <Btn sx={{ padding: "7px 14px", fontSize: 13 }} onClick={goScreen}>🧩 Skrining Gratis</Btn>
           </div>
         </div>
       </nav>
 
-      {/* Content */}
-      <div style={s.content}>
-        {page === "home" && <HomePage />}
-        {page === "screening" && <ScreeningPage />}
-        {page === "history" && <HistoryPage />}
-        {page === "about" && <AboutPage />}
-        {page === "consult" && <ConsultPage />}
-        {page === "admin" && <AdminPage />}
+      {/* CONTENT */}
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 20px", opacity: anim ? 1 : 0, transform: anim ? "translateY(0)" : "translateY(8px)", transition: "all 0.3s ease" }}>
+        {page === "home"       && <HomePage />}
+        {page === "screening"  && <ScreenPage />}
+        {page === "findDoctor" && <FindDoctorPage />}
+        {page === "consult"    && <ConsultPage />}
+        {page === "about"      && <AboutPage />}
       </div>
 
-      {/* Footer */}
-      <div style={{ borderTop: `1px solid ${cardBorder}`, padding: "24px 20px", textAlign: "center", fontSize: 12, color: textSec }}>
-        <div style={{ marginBottom: 8 }}>⚕️ {lang === "id" ? "Fitur ini hanya untuk bantuan skrining awal, bukan pengganti diagnosis medis profesional." : "This feature is for early screening assistance only, not a substitute for professional medical diagnosis."}</div>
-        <div>© 2025 Halodoc · AI Early Autism Screening Feature · {lang === "id" ? "Didukung oleh Tim Medis Halodoc" : "Powered by Halodoc Medical Team"}</div>
+      {/* FOOTER */}
+      <div style={{ background: C.pinkLight, borderTop: `1px solid ${C.pink}20`, padding: "28px 20px", marginTop: 16 }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "space-between", marginBottom: 20 }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 26, height: 26, background: C.pink, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ color: C.white, fontSize: 12, fontWeight: 800 }}>H</span></div>
+                <span style={{ fontSize: 17, fontWeight: 700, color: C.pink }}>halodoc</span>
+              </div>
+              <div style={{ fontSize: 12, color: C.gray600 }}>Autism Care · Platform Skrining Autism #1 Indonesia</div>
+              <div style={{ fontSize: 11, color: C.gray400, marginTop: 5 }}>📧 help@halodoc.com · 📞 021-5095-9900</div>
+            </div>
+            {[
+              { t: "Layanan", items: ["Skrining AI", "Chat Terapis", "Klinik Terdekat", "Terapi ABA", "Parent Training"] },
+              { t: "Informasi", items: ["Tentang Fitur AI", "Kamus Autism", "Artikel & Riset", "Pusat Bantuan"] },
+              { t: "Keamanan", items: ["ISO 27001 Certified", "LegitScript Certified", "Dibina oleh Kemenkes", "Pemberitahuan Privasi"] },
+            ].map((col, i) => (
+              <div key={i}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.pink, marginBottom: 8, letterSpacing: 0.5 }}>{col.t.toUpperCase()}</div>
+                {col.items.map((item, j) => <div key={j} style={{ fontSize: 12, color: C.gray600, marginBottom: 5, cursor: "pointer" }}>{item}</div>)}
+              </div>
+            ))}
+          </div>
+          <div style={{ borderTop: `1px solid ${C.pink}20`, paddingTop: 14, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
+            <div style={{ fontSize: 11, color: C.gray400 }}>© 2016–2025 PT Media Dokter Investama. All rights reserved.</div>
+            <div style={{ fontSize: 11, color: C.gray400 }}>⚕️ Hanya untuk skrining awal, bukan pengganti diagnosis medis profesional.</div>
+          </div>
+        </div>
       </div>
+
+      {/* CHATBOT */}
+      {chatOpen && <ChatBot onClose={() => setChatOpen(false)} />}
+
+      {/* FAB */}
+      {!chatOpen && (
+        <button onClick={() => setChatOpen(true)} style={{ position: "fixed", bottom: 24, right: 24, width: 54, height: 54, borderRadius: "50%", background: `linear-gradient(135deg,${C.pink},${C.purple})`, border: "none", cursor: "pointer", fontSize: 22, color: C.white, boxShadow: `0 4px 20px ${C.pink}55`, zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          🤖
+        </button>
+      )}
     </div>
   );
 }
