@@ -1183,6 +1183,10 @@ export default function App() {
                     const sr = { totalWords, repetitionRate, pronounRatio, pauseRate, riskScore, risk, transcript: transcript || "Anak saya suka bermain ayo ayo ayo ya ya ya tidak tidak tidak suka main main main", audioSource: audioFile ? "upload" : "record" };
                     setSpeechResult(sr);
                     setSpeechStage("done");
+
+                    setTimeout(() => {
+                      setStep(5);
+                    }, 800);
                   }, 500);
                 }
               }, 600);
