@@ -1149,6 +1149,28 @@ export default function App() {
                   <input type="number" min={12} max={72} value={la} onChange={e => setLa(e.target.value)} placeholder="Contoh: 36"
                     style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${C.gray200}`, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
                   {la && Number(la) >= 12 && <div style={{ fontSize: 12, color: C.pink, marginTop: 4 }}>= {Math.floor(Number(la) / 12)} tahun {Number(la) % 12} bulan</div>}
+                  {la && Number(la) > 72 && (
+                    <div
+                      style={{
+                        marginTop: 10,
+                        padding: 12,
+                        borderRadius: 10,
+                        background: "#FEF2F2",
+                        border: "1px solid #FECACA",
+                        color: "#B91C1C",
+                        fontSize: 13,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <strong>⚠️ Batas Usia Skrining Terlampaui</strong>
+                      <br />
+                      SmartCare Autism Screening dirancang untuk anak usia
+                      12–72 bulan (1–6 tahun).
+                      <br />
+                      Untuk usia di atas 6 tahun, kami menyarankan konsultasi
+                      langsung dengan dokter spesialis anak atau psikolog perkembangan.
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label style={{ fontSize: 13, fontWeight: 600, color: C.gray600, marginBottom: 8, display: "block" }}>Jenis Kelamin</label>
@@ -1163,7 +1185,12 @@ export default function App() {
                 </div>
               </div>
               <div style={{ marginTop: 28, display: "flex", justifyContent: "flex-end" }}>
-                <Btn onClick={saveInfo} disabled={!ln.trim() || !la || !lg}>Lanjut →</Btn>
+                <Btn
+                  onClick={saveInfo}
+                  disabled={!ln.trim() || !la || !lg || Number(la) > 72}
+                >
+                  Lanjut →
+                </Btn>
               </div>
             </div>
           )}
