@@ -1,4 +1,17 @@
 import { useState, useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+  iconUrl:
+    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+  shadowUrl:
+    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+});
 
 const C = {
   pink: "#E5006C", pinkDark: "#C4005C", pinkLight: "#FFF0F7", pinkMid: "#FFD6EC",
@@ -439,65 +452,35 @@ function FindDoctorPage() {
 
       {/* Interactive Map — Indonesia cities */}
       <div style={{ background: C.white, border: `1px solid ${C.gray200}`, borderRadius: 16, overflow: "hidden" }}>
-        <div style={{ padding: "14px 18px", borderBottom: `1px solid ${C.gray200}`, fontWeight: 700, fontSize: 14, color: C.gray800, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span>🗺️ Peta Dokter Spesialis · Indonesia</span>
-          <span style={{ fontSize: 12, color: C.gray400, fontWeight: 400 }}>Klik kota untuk filter dokter</span>
-        </div>
-        <div style={{ height: 320, background: "linear-gradient(160deg,#d4eef5 0%,#c8e6d8 40%,#b5dcc5 100%)", position: "relative", overflow: "hidden" }}>
-          {/* Decorative SVG island shapes for Java island */}
-          <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} viewBox="0 0 800 320" preserveAspectRatio="none">
-            {/* Sea */}
-            <rect width="800" height="320" fill="#85C1E9" opacity="0.3" />
-            {/* Java island rough shape */}
-            <ellipse cx="420" cy="165" rx="310" ry="55" fill="#A8D5A2" opacity="0.85" />
-            {/* Sumatra partial */}
-            <ellipse cx="120" cy="120" rx="140" ry="38" fill="#A8D5A2" opacity="0.7" transform="rotate(-10,120,120)" />
-            {/* Bali */}
-            <ellipse cx="660" cy="180" rx="24" ry="14" fill="#A8D5A2" opacity="0.8" />
-            {/* Lombok */}
-            <ellipse cx="700" cy="188" rx="16" ry="10" fill="#A8D5A2" opacity="0.7" />
-            {/* Kalimantan partial */}
-            <ellipse cx="570" cy="70" rx="80" ry="50" fill="#A8D5A2" opacity="0.6" />
-            {/* Grid lines */}
-            {[1,2,3,4].map(i => <line key={i} x1={i*160} y1="0" x2={i*160} y2="320" stroke="white" strokeWidth="0.5" opacity="0.4" />)}
-            {[1,2].map(i => <line key={i} x1="0" y1={i*107} x2="800" y2={i*107} stroke="white" strokeWidth="0.5" opacity="0.4" />)}
-          </svg>
+        <div style={{ height: 320 }}>
+          <MapContainer
+            center={[-2.5, 118]}
+            zoom={5}
+            scrollWheelZoom={true}
+            style={{ height: "100%", width: "100%" }}
+          >
+            <TileLayer
+              attribution="&copy; OpenStreetMap contributors"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
 
-          {/* City markers */}
-          {Object.entries(cityPos).map(([city, pos]) => {
-            const count = cityDoctorCount(city);
-            const isActive = activeCity === city || cityFilter === city;
-            return (
-              <div key={city} onClick={() => { setCityFilter(city); setActiveCity(city); }}
-                style={{ position: "absolute", left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%,-100%)", cursor: "pointer", zIndex: 10, transition: "all 0.2s" }}>
-                {/* Popup card on active */}
-                {isActive && (
-                  <div style={{ position: "absolute", bottom: "calc(100% + 4px)", left: "50%", transform: "translateX(-50%)", background: C.white, border: `1.5px solid ${C.pink}`, borderRadius: 10, padding: "8px 12px", minWidth: 140, boxShadow: "0 4px 16px #0002", zIndex: 20, whiteSpace: "nowrap" }}>
-                    <div style={{ fontWeight: 700, fontSize: 12, color: C.pink, marginBottom: 3 }}>📍 {city}</div>
-                    <div style={{ fontSize: 11, color: C.gray600 }}>{count} dokter spesialis</div>
-                    {DOCTORS.filter(d => d.city === city).slice(0, 2).map((d, i) => (
-                      <div key={i} style={{ fontSize: 10, color: C.gray700, marginTop: 3 }}>• {d.name.split(",")[0]}</div>
-                    ))}
-                  </div>
-                )}
-                {/* Pin */}
-                <div style={{ background: isActive ? C.pinkDark : C.pink, color: C.white, borderRadius: "50% 50% 50% 0", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, boxShadow: `0 3px 12px ${C.pink}66`, border: "2px solid white", transform: "rotate(-45deg)", transition: "all 0.2s" }}>
-                  <span style={{ transform: "rotate(45deg)" }}>{count}</span>
-                </div>
-                <div style={{ textAlign: "center", marginTop: 4, fontSize: 10, fontWeight: 700, color: C.gray800, background: "rgba(255,255,255,0.9)", borderRadius: 6, padding: "2px 5px" }}>{city}</div>
-              </div>
-            );
-          })}
-
-          {/* Legend */}
-          <div style={{ position: "absolute", bottom: 12, left: 12, background: "rgba(255,255,255,0.92)", borderRadius: 10, padding: "8px 12px", fontSize: 11, color: C.gray600, border: `1px solid ${C.gray200}` }}>
-            <div style={{ fontWeight: 700, marginBottom: 4, color: C.gray800 }}>Legenda</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}><div style={{ width: 14, height: 14, borderRadius: "50%", background: C.pink }} /><span>Kota dengan dokter</span></div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}><div style={{ fontSize: 12 }}>🔢</div><span>Jumlah dokter</span></div>
-          </div>
-          <div style={{ position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.9)", borderRadius: 8, padding: "6px 10px", fontSize: 10, color: C.gray600 }}>
-            🗺️ Pulau Jawa · Indonesia
-          </div>
+            {DOCTORS.map((doctor) => (
+              <Marker
+                key={doctor.id}
+                position={[doctor.lat, doctor.lng]}
+              >
+                <Popup>
+                  <b>{doctor.name}</b>
+                  <br />
+                  {doctor.spec}
+                  <br />
+                  {doctor.hosp}
+                  <br />
+                  ⭐ {doctor.rating}
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
         </div>
       </div>
     </div>
