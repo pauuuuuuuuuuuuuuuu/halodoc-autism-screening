@@ -904,6 +904,7 @@ function SmartwatchPage() {
 // MAIN APP
 // ────────────────────────────────────────────────
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [page, setPage] = useState("home");
   const [step, setStep] = useState(0);
   const [childName, setChildName] = useState("");
@@ -921,6 +922,158 @@ export default function App() {
   useEffect(() => {
     setAnim(false); const t = setTimeout(() => setAnim(true), 40); return () => clearTimeout(t);
   }, [page, step]);
+
+  if (!isLoggedIn) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(135deg,#fdf2f8 0%,#ffffff 100%)",
+          padding: 24,
+        }}
+      >
+        <div
+                  style={{
+                    width: 460,
+                    background: "white",
+                    padding: 40,
+                    borderRadius: 24,
+                    boxShadow: "0 20px 50px rgba(0,0,0,0.08)",
+                    textAlign: "center",
+                  }}
+                >
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    marginBottom: 20,
+    justifyContent: "center",
+  }}
+>
+  <img
+    src="/halodoc-logo.jpg"
+    alt="Halodoc"
+    style={{
+      height: 48,
+      objectFit: "contain",
+    }}
+  />
+
+  {/* kode SmartCare di atas */}
+
+          <div>
+            <div
+              style={{
+                fontWeight: 800,
+                fontSize: 18,
+              }}
+            >
+              SmartCare
+            </div>
+
+            <div
+              style={{
+                fontSize: 12,
+                color: "#64748b",
+              }}
+            >
+              AI-Powered Autism Screening
+            </div>
+          </div>
+        </div>
+
+  
+          <p
+            style={{
+              color: "#64748b",
+              marginBottom: 28,
+              lineHeight: 1.5,
+            }}
+          >
+            Masuk untuk memulai proses screening, analisis AI,
+            dan konsultasi dokter spesialis.
+          </p>
+
+          <input
+            placeholder="Email"
+            style={{
+              width: "100%",
+              padding: 14,
+              marginBottom: 12,
+              borderRadius: 12,
+              border: "1px solid #d1d5db",
+              background: "white",
+              color: "#111827",
+              boxSizing: "border-box",
+            }}
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            style={{
+              width: "100%",
+              padding: 14,
+              marginBottom: 18,
+              borderRadius: 12,
+              border: "1px solid #d1d5db",
+              background: "white",
+              color: "#111827",
+              boxSizing: "border-box",
+            }}
+          />
+
+          <button
+            onClick={() => setIsLoggedIn(true)}
+            style={{
+              width: "100%",
+              padding: 14,
+              borderRadius: 12,
+              border: "none",
+              background: "#ec4899",
+              color: "white",
+              fontWeight: 700,
+              fontSize: 15,
+              cursor: "pointer",
+            }}
+          >
+            Masuk
+          </button>
+
+          <button
+            onClick={() => setIsLoggedIn(true)}
+            style={{
+              width: "100%",
+              padding: 14,
+              borderRadius: 12,
+              marginTop: 12,
+              border: "1px solid #d1d5db",
+              background: "white",
+              color: "#111827",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Login dengan Google
+          </button>
+
+          <p
+            style={{
+              marginTop: 20,
+              fontSize: 12,
+              color: "#94a3b8",
+            }}
+          >
+            Demo Academic Project • Foundation of AI
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   function goScreen() { setStep(0); setAnswers({}); setResult(null); setVideo(null); setSpeechResult(null); setPage("screening"); }
 
@@ -1756,12 +1909,12 @@ export default function App() {
   }
 
   const navItems = [
-    { id: "home", l: "Beranda", i: "🏠" },
-    { id: "screening", l: "Skrining AI", i: "🧩" },
-    { id: "smartwatch", l: "Smartwatch", i: "⌚" },
-    { id: "findDoctor", l: "Cari Dokter", i: "📍" },
-    { id: "consult", l: "Konsultasi", i: "👨‍⚕️" },
-    { id: "about", l: "Tentang AI", i: "🤖" },
+    { id: "home", l: "Beranda"},
+    { id: "screening", l: "Skrining AI"},
+    { id: "smartwatch", l: "Smartwatch"},
+    { id: "findDoctor", l: "Cari Dokter"},
+    { id: "consult", l: "Konsultasi"},
+    { id: "about", l: "Tentang AI"},
   ];
 
   return (
