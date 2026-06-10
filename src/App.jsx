@@ -1149,6 +1149,29 @@ export default function App() {
                   <input type="number" min={12} max={72} value={la} onChange={e => setLa(e.target.value)} placeholder="Contoh: 36"
                     style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${C.gray200}`, fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }} />
                   {la && Number(la) >= 12 && <div style={{ fontSize: 12, color: C.pink, marginTop: 4 }}>= {Math.floor(Number(la) / 12)} tahun {Number(la) % 12} bulan</div>}
+                  {la && Number(la) < 12 && (
+                    <div
+                      style={{
+                        marginTop: 10,
+                        padding: 12,
+                        borderRadius: 10,
+                        background: "#FEF3C7",
+                        border: "1px solid #FCD34D",
+                        color: "#92400E",
+                        fontSize: 13,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <strong>⚠️ Usia Belum Memenuhi Kriteria Skrining</strong>
+                      <br />
+                      SmartCare Autism Screening direkomendasikan untuk anak usia
+                      minimal 12 bulan.
+                      <br />
+                      Silakan lakukan pemantauan perkembangan secara berkala dan
+                      konsultasikan dengan dokter anak jika terdapat kekhawatiran.
+                    </div>
+                  )}
+
                   {la && Number(la) > 72 && (
                     <div
                       style={{
@@ -1187,7 +1210,12 @@ export default function App() {
               <div style={{ marginTop: 28, display: "flex", justifyContent: "flex-end" }}>
                 <Btn
                   onClick={saveInfo}
-                  disabled={!ln.trim() || !la || !lg || Number(la) > 72}
+                  disabled={
+                    !ln.trim() ||
+                    !la ||
+                    !lg ||
+                    Number(la) < 12 ||
+                    Number(la) > 72}
                 >
                   Lanjut →
                 </Btn>
